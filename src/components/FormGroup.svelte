@@ -1,10 +1,17 @@
 <script>
-    export let title;
+    export let title, shrinkable;
+    export let isShrink;
+    const handleShrink = () => (isShrink = !isShrink);
 </script>
 
 <div class="form-group">
     {#if title}
-        <h3>{title}</h3>
+        <div class="form-group-title" on:click={handleShrink}>
+            <h3>{title}</h3>
+            {#if shrinkable}
+                <span>{isShrink ? "🔽" : "🔼"}</span>
+            {/if}
+        </div>
     {/if}
     <slot />
 </div>
@@ -13,10 +20,18 @@
     .form-group {
         display: grid;
         align-items: center;
-        justify-content: center;
         font-size: 18px;
         gap: 2rem;
         border-top: 3px solid #ebebeb;
+    }
+    .form-group-title {
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: 1fr 5%;
+        align-items: center;
+    }
+    .form-group-title:hover {
+        background-color: #eee;
     }
     h3 {
         font-weight: 500;
