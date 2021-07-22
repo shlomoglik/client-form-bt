@@ -1,21 +1,20 @@
 <script>
-import { formDoc } from "../stores";
+    import { formDoc } from "../stores";
+    import DateInput from "./DateInput.svelte";
+    import LongTextInput from "./LongTextInput.svelte";
+    import SelectInput from "./SelectInput.svelte";
+    import TextInput from "./TextInput.svelte";
     export let header;
 </script>
 
-<div class="input">
-    <label for={header}>{$formDoc.headers[header] ? $formDoc.headers[header].label: ""}</label>
-    <input type="text" name={header} id="name" bind:value={$formDoc.docData[header]} />
-</div>
-<style>
-    .input{
-        display: grid;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
-    .input label , .input input{
-        font-size: 24px;
-        min-width: 300px;
-    }
-</style>
+{#if $formDoc.headers[header]}
+    {#if $formDoc.headers[header].type === "date"}
+        <DateInput {header} />
+    {:else if $formDoc.headers[header].type === "list"}
+        <SelectInput {header} />
+    {:else if $formDoc.headers[header].type === "long"}
+        <LongTextInput {header} />
+    {:else}
+        <TextInput {header} />
+    {/if}
+{/if}

@@ -50,7 +50,7 @@
 	<p>להוספת לקוח חדש למערכת מונדיי יש למלא אחר הוראות הטופס:</p>
 	<form class="form" on:submit={handleOnSubmit}>
 		{#each formGroups as { title, fields }}
-			<FormGroup {title}>
+			<FormGroup {title} shrinkable>
 				{#each fields as header}
 					<Input {header} />
 				{/each}
@@ -59,7 +59,6 @@
 		<div class="form-actions">
 			<button type="submit">צור</button>
 		</div>
-
 	</form>
 </main>
 
