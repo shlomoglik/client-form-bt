@@ -45,7 +45,16 @@ export const formDoc = writable({
     anohterPhone: { label: "טלפון נוסף" },
     anohterEmail: { label: "אימייל נוסף" },
 
-    package: { label: "חבילה" },
+    package: {
+      label: "חבילה",
+      type: "list",
+      options: [
+        { text: "BT-PRO", id: "BT_PRO", attributes: { price: 5000 } },
+        { text: "BT", id: "BT", attributes: { price: 5000 } },
+        { text: "DIGITAL-PRO", id: "DP", attributes: { price: 5000 } },
+        { text: "מנכלים", id: "CEO", attributes: { price: 5000 } },
+      ],
+    },
     dealStatus: { label: "סטטוס עסקה" },
     salesMan1: { label: "מתאם" },
     salesMan2: { label: "סוכן שטח" },

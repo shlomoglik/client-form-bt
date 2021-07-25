@@ -15,7 +15,6 @@
     <div class="form-group-title" on:click={handleShrink}>
       <h3>{title}</h3>
       {#if shrinkable}
-        <!-- <span>{isShrink ? "🔽" : "🔼"}</span> -->
         <span class={isShrink ? "up" : "down"} />
       {/if}
     </div>
