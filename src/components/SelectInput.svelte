@@ -6,7 +6,7 @@
         const newItem = $formDoc.docData[header];
         if (newItem.attributes) {
             Object.entries(newItem.attributes).forEach(([header, value]) => {
-                $formDoc.docData[header] = value
+                $formDoc.docData[header] = value;
             });
         }
         console.log($formDoc.docData);
@@ -18,6 +18,7 @@
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>
     <select
+        class="input__field"
         name={header}
         id={header}
         bind:value={$formDoc.docData[header]}

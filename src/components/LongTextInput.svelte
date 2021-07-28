@@ -6,7 +6,7 @@
 <label for={header}>
     {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
 </label>
-<div class="input">
+<div class="input__field">
     <textarea
         name={header}
         id={header}

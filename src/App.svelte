@@ -6,6 +6,7 @@
   function handleOnSubmit(e) {
     e.preventDefault();
     console.log($formDoc.docData);
+    
   }
 </script>
 

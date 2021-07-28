@@ -18,8 +18,8 @@ export const formDoc = writable({
     salesMan1: "",
     salesMan2: "",
     contract: "",
-    paymentAttached: "",
-    clientIdAttached: "",
+    paymentAttached: [],
+    clientIdAttached: [],
     clientExpectations: "",
     notes: "",
   },
@@ -60,8 +60,8 @@ export const formDoc = writable({
     salesMan2: { label: "סוכן שטח" },
     contract: { label: "הסכם חתום" },
 
-    paymentAttached: { label: "צ'קים" },
-    clientIdAttached: { label: "צילום ת.ז. של בעל העסק" },
+    paymentAttached: { label: "צ'קים", type: "file" },
+    clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file" },
 
     clientExpectations: {
       label: "תיאום ציפיות",

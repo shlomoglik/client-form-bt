@@ -8,6 +8,7 @@
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>
     <input
+        class="input__field"
         type="date"
         name={header}
         id={header}
