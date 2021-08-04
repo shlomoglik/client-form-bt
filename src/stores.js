@@ -1,32 +1,38 @@
 import { writable } from "svelte/store";
+import firebase from "firebase";
+const defaultFormDoc = {
+  clientName: "",
+  companyName: "",
+  companyNumber: "",
+  area: "",
+  adress: "",
+  companyType: "",
+  companyArea: "",
+  phone: "",
+  email: "",
+  anohterPhone: "",
+  anohterEmail: "",
+  package: "",
+  dealStatus: "",
+  salesMan1: "",
+  salesMan2: "",
+  contract: [],
+  paymentAttached: [],
+  clientIdAttached: [],
+  clientExpectations: "",
+  notes: "",
+  price: ""
+}
+
+export const userDoc = writable(null)
 
 export const formDoc = writable({
-  docData: {
-    clientName: "",
-    companyName: "",
-    companyNumber: "",
-    area: "",
-    adress: "",
-    companyType: "",
-    companyArea: "",
-    phone: "",
-    email: "",
-    anohterPhone: "",
-    anohterEmail: "",
-    package: "",
-    dealStatus: "",
-    salesMan1: "",
-    salesMan2: "",
-    contract: "",
-    paymentAttached: [],
-    clientIdAttached: [],
-    clientExpectations: "",
-    notes: "",
-  },
+  docData: Object.assign({}, defaultFormDoc),
   headers: {
-    clientName: { label: "שם הלקוח" },
-    companyName: { label: "שם העסק (רשויות)" },
-    companyNumber: { label: "ת.ז. | ח.פ" },
+    clientName: { label: "שם הלקוח", required: true },
+    companyName: { label: "שם העסק (רשויות)", required: true },
+    companyNumber: { label: "ת.ז. | ח.פ", required: true },
+    price: { label: "סכום עסקה" },
     area: {
       label: "איזור בארץ",
       type: "list",
@@ -58,10 +64,10 @@ export const formDoc = writable({
     dealStatus: { label: "סטטוס עסקה" },
     salesMan1: { label: "מתאם" },
     salesMan2: { label: "סוכן שטח" },
-    contract: { label: "הסכם חתום" },
+    contract: { label: "הסכם חתום", type: "file", required: true, options: { multiple: false } },
 
-    paymentAttached: { label: "צ'קים", type: "file" },
-    clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file" },
+    paymentAttached: { label: "צ'קים", type: "file", required: true, options: { multiple: false } },
+    clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file", required: true, options: { multiple: false } },
 
     clientExpectations: {
       label: "תיאום ציפיות",

@@ -1,23 +1,24 @@
 <script>
-    import { formDoc } from "../stores";
+    // import { formDoc } from "../stores";
     import DateInput from "./DateInput.svelte";
-import FileInput from "./FileInput.svelte";
+    import FileInput from "./FileInput.svelte";
     import LongTextInput from "./LongTextInput.svelte";
     import SelectInput from "./SelectInput.svelte";
     import TextInput from "./TextInput.svelte";
+    export let formDoc;
     export let header;
 </script>
 
 {#if $formDoc.headers[header]}
     {#if $formDoc.headers[header].type === "date"}
-        <DateInput {header} />
+        <DateInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "list"}
-        <SelectInput {header} />
+        <SelectInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "file"}
-        <FileInput {header} />
+        <FileInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "long"}
-        <LongTextInput {header} />
+        <LongTextInput {header} {formDoc} />
     {:else}
-        <TextInput {header} />
+        <TextInput {header} {formDoc} />
     {/if}
 {/if}

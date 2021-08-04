@@ -3,11 +3,12 @@
     export let header;
 </script>
 
-<label for={header}>
-    {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
-</label>
-<div class="input__field">
+<div class="input">
+    <label for={header}>
+        {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
+    </label>
     <textarea
+        class="input__field"
         name={header}
         id={header}
         bind:value={$formDoc.docData[header]}
