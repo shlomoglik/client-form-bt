@@ -2,6 +2,8 @@
     import { formDoc } from "../stores";
     import { uuid } from "../utils/data";
     import firebase from "firebase/app";
+    import "firebase/storage"
+    
     let loader = false;
     export let header,
         fileInput,
