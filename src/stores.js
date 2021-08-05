@@ -1,5 +1,4 @@
 import { writable } from "svelte/store";
-import firebase from "firebase";
 const defaultFormDoc = {
   clientName: "",
   companyName: "",
@@ -63,7 +62,17 @@ export const formDoc = writable({
     },
     dealStatus: { label: "סטטוס עסקה" },
     salesMan1: { label: "מתאם" },
-    salesMan2: { label: "סוכן שטח" },
+    salesMan2: {
+      label: "סוכן שטח", type: "list", options: [
+        { text: "עידן כהן", id: "20499445" },
+        { text: "ישראל בועז שטרית", id: "23185896" },
+        { text: "רון אזרן", id: "15960469" },
+        { text: "אייל אסולין", id: "12478041" },
+        { text: "ישראל סויסה", id: "23381794" },
+        { text: "עמית מרציאנו", id: "23573246" },
+        { text: "ישורון גליקמן", id: "12366457" },
+      ]
+    },
     contract: { label: "הסכם חתום", type: "file", required: true, options: { multiple: false } },
 
     paymentAttached: { label: "צ'קים", type: "file", required: true, options: { multiple: false } },

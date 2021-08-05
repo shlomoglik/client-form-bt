@@ -1,7 +1,6 @@
 <script>
-  import FormGroup from "./components/FormGroup.svelte";
-  import Input from "./components/Input.svelte";
-  import { formDoc, formGroups, userDoc } from "./stores";
+  let email, password;
+  $: userDisplayValue = "...";
 
   import firebase from "firebase/app";
   const app = firebase.initializeApp({
@@ -18,20 +17,36 @@
     if (user === null) $userDoc = null;
     else {
       $userDoc = user;
+      userDisplayValue = getUserDispalyValue();
     }
   });
+
+  import FormGroup from "./components/FormGroup.svelte";
+  import Input from "./components/Input.svelte";
+  import { formDoc, formGroups, userDoc } from "./stores";
+
+  async function handleLogin() {
+    try {
+      const userCred = await auth.signInWithEmailAndPassword(email, password);
+      await auth.updateCurrentUser(userCred.user);
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   async function handleOnSubmit() {
     const url = "https://hook.integromat.com/95nczekdzhsagsr4s8fypa1e9p9booly";
     const formData = new FormData();
     Object.entries($formDoc.docData).forEach(([header, value]) => {
       const field = $formDoc.headers[header];
+      const filesCount = {};
       if (field) {
         switch (field.type) {
           case "file":
-            value.forEach((fileObj, ind) =>
-              formData.append(`${header}_${ind}`, fileObj.file)
-            );
+            value.forEach((fileObj, ind) => {
+              formData.append(`${header}_${ind}`, fileObj.file);
+              filesCount[header] = Number(ind) + 1;
+            });
             break;
           case "list":
             formData.append(header, value.id || "");
@@ -43,7 +58,8 @@
         throw `field ${header} not found`;
       }
     });
-    console.log($formDoc.docData);
+    formData.append("filesCount", JSON.stringify(filesCount));
+    // console.log($formDoc.docData);
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -55,11 +71,19 @@
       console.error(e);
     }
   }
+
+  function getUserDispalyValue() {
+    if ($userDoc && $userDoc.email)
+      return $userDoc.email.substring(0, 3).replace("_", "");
+    else return "...";
+  }
 </script>
 
 <main>
+  <div class="top">
+    <div class="userAvatar">{userDisplayValue}</div>
+  </div>
   {#if $userDoc}
-    <div>{$userDoc.displayName}</div>
     <h1>טופס הוספת לקוח חדש</h1>
     <p>להוספת לקוח חדש למערכת מונדיי יש למלא אחר הוראות הטופס:</p>
     <form class="form" on:submit|preventDefault={(e) => e.preventDefault()}>
@@ -82,18 +106,35 @@
       </div>
     </form>
   {:else}
-    <form class="form" on:submit|preventDefault={(e) => e.preventDefault()} >
-      
-      <button>התחבר</button>
+    <form class="form" on:submit|preventDefault={(e) => e.preventDefault()}>
+      <div class="input">
+        <label for="email">אימייל</label>
+        <input
+          class="input__field"
+          id="email"
+          type="email"
+          bind:value={email}
+          required
+        />
+      </div>
+      <div class="input">
+        <label for="password">סיסמא</label>
+        <input
+          class="input__field"
+          id="password"
+          type="password"
+          bind:value={password}
+          required
+        />
+      </div>
+      <button on:click={handleLogin}>התחבר</button>
     </form>
-
   {/if}
 </main>
 
 <style>
   main {
     text-align: center;
-    padding: 1em;
     margin: 0 auto;
   }
 
@@ -102,6 +143,26 @@
     text-transform: uppercase;
     font-size: 4em;
     font-weight: 100;
+  }
+  .top {
+    background-color: #333;
+    color: #f0f0f0;
+    display: grid;
+    grid-auto-flow: column;
+    min-height: 50px;
+    padding: 5px;
+    align-items: center;
+  }
+  .userAvatar {
+    border-radius: 50%;
+    border: 1px solid lightgray;
+    text-transform: uppercase;
+    font-size: 24px;
+    padding: 10px;
+    justify-self: end;
+    width: 35px;
+    height: 35px;
+    user-select: none;
   }
   .form {
     margin: 5rem auto;

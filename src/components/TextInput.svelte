@@ -1,6 +1,5 @@
 <script>
-    import { formDoc } from "../stores";
-    export let header;
+    export let header, formDoc;
 </script>
 
 <div class="input">

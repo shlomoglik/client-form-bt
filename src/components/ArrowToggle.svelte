@@ -1,5 +1,5 @@
 
-<div class="boo"></div>
+<div></div>
 
 <style>
     div{
