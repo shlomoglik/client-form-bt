@@ -1,15 +1,65 @@
 <script>
-    import { formDoc } from "../stores";
+    import { prompt } from "../stores";
     import { uuid } from "../utils/data";
     import firebase from "firebase/app";
-    import "firebase/storage"
-    
-    let loader = false;
+    import "firebase/storage";
+    import Icon from "./Icon.svelte";
+    import { onMount } from "svelte";
+
     export let header,
-        fileInput,
-        files,
-        attachments = [],
+        formDoc,
         dataOptions = {};
+
+    let valid = true;
+    let error = "";
+    let loader = false;
+    let fileInput;
+    let files;
+    let attachments = [];
+
+    onMount(() => {
+        validateField();
+    });
+
+    function validate() {
+        validateFormSubmission();
+        validateField();
+    }
+    function validateField() {
+        const hasErrors = $formDoc.errors.filter(
+            (err) => err.header === header
+        );
+        if (hasErrors.length > 0) {
+            valid = false;
+            error = hasErrors.map((err) => err.text).join("\n");
+        } else {
+            valid = true;
+        }
+    }
+
+    function validateFormSubmission() {
+        $formDoc.errors = [];
+        for (const [header, value] of Object.entries($formDoc.docData)) {
+            const field = $formDoc.headers[header];
+            if (field && field.required) {
+                let isEmpty = false;
+                if (field.type === "file" && value.length === 0) isEmpty = true;
+                else if (value === "") isEmpty = true;
+                if (isEmpty) {
+                    $formDoc.errors.push({
+                        header,
+                        type: "required",
+                        text: `חסר ערך בשדה חובה - ${field.label}`,
+                    });
+                }
+            }
+        }
+        if ($formDoc.errors.length > 0) $formDoc.valid = false;
+        else $formDoc.valid = true;
+    }
+    function showError() {
+        $prompt = `<div><p>${error}</p></div>`;
+    }
 
     $: {
         if (files && files[0]) handleFileChange();
@@ -118,7 +168,10 @@
     // };
 </script>
 
-<div class="input">
+<div class="input" data-error={!valid}>
+    {#if !valid}
+        <Icon name="icon-warning" onClick={showError} />
+    {/if}
     <label for={header}>
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>
@@ -130,6 +183,8 @@
         id={header}
         bind:files
         onChange={handleFileChange}
+        on:blur={validate}
+        required={$formDoc.docData[header].required}
     />
     <div class="input-files input__field" on:click={() => fileInput.click()}>
         {#if files && files[0]}

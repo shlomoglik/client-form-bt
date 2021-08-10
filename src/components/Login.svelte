@@ -1,6 +1,6 @@
 <script>
   import {loginWithEmailPassword} from "../auth" 
-  export let email, password;
+  let email, password;
 
   let error = "";
 

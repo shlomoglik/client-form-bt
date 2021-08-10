@@ -1,25 +1,38 @@
 <script>
   import { formGroups } from "../stores";
+  import { slide } from "svelte/transition";
+  import ArrowToggle from "./ArrowToggle.svelte";
+  import Input from "./Input.svelte";
 
-  export let title, shrinkable, isShrink, formGroup;
+  export let title, shrinkable, isShrink, formGroup, formDoc;
+  let group;
+
   const handleShrink = () => {
     const updateFormGroup = { ...formGroup, isShrink: !isShrink };
     $formGroups = $formGroups.map((elem) =>
       elem.id === formGroup.id ? updateFormGroup : elem
     );
+    group.scrollIntoView(true);
   };
 </script>
 
-<div class="form-group" tabindex="0">
+<div class="form-group" tabindex="0" bind:this={group}>
   {#if title}
     <div class="form-group-title" on:click={handleShrink}>
       <h3>{title}</h3>
       {#if shrinkable}
-        <span class={isShrink ? "up" : "down"} />
+        <!-- <span class={isShrink ? "up" : "down"} /> -->
+        <ArrowToggle direction={isShrink ? "up" : "down"} />
       {/if}
     </div>
   {/if}
-  <slot />
+  {#if !isShrink}
+    <div transition:slide>
+      {#each formGroup.fields as header}
+        <Input {header} {formDoc} />
+      {/each}
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -39,22 +52,6 @@
   }
   .form-group-title:hover {
     background-color: #eee;
-  }
-  .form-group-title span {
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 20px solid #555;
-    transition: all 0.2s ease-in-out;
-  }
-  .form-group-title span.up {
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 20px solid #555;
-  }
-  .form-group-title span.down {
-    transform: rotate(-180deg);
   }
   h3 {
     font-weight: 500;
