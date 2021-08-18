@@ -5,6 +5,7 @@
     import "firebase/storage";
     import Icon from "./Icon.svelte";
     import { onMount } from "svelte";
+    import FileThumb from "./FileThumb.svelte";
 
     export let header,
         formDoc,
@@ -71,6 +72,7 @@
             await child.delete();
             attachments = attachments.filter((file) => file.id !== id);
             $formDoc.docData[header] = attachments;
+            validate()
         } catch (err) {
             console.error("error on FileDoc.remove() \n", err);
         }
@@ -116,6 +118,7 @@
                     );
                     attachments = [...attachments, docData];
                     $formDoc.docData[header] = attachments;
+                    validate()
                     console.log("load end", url);
                 } catch (err) {
                     console.error(err);
@@ -168,7 +171,7 @@
     // };
 </script>
 
-<div class="input" data-error={!valid}>
+<div class="input" data-error={!valid} tabindex="0" on:blur="{validate}">
     {#if !valid}
         <Icon name="icon-warning" onClick={showError} />
     {/if}
@@ -183,37 +186,14 @@
         id={header}
         bind:files
         onChange={handleFileChange}
-        on:blur={validate}
         required={$formDoc.docData[header].required}
     />
     <div class="input-files input__field" on:click={() => fileInput.click()}>
         {#if files && files[0]}
             <div hidden>{files[0].name}</div>
         {/if}
-        {#each attachments as attachment, ind}
-            <div class="file-thumb" on:click|preventDefault|stopPropagation>
-                <span
-                    class="close"
-                    on:click|preventDefault|stopPropagation={handleRemoveFile(
-                        attachment.id
-                    )}>X</span
-                >
-                <span>{attachment.title}</span>
-                {#if attachment.type === "application/pdf"}
-                    <iframe
-                        on:click|preventDefault|stopPropagation
-                        title="תצוגה מקדימה"
-                        name="תצוגה מקדימה"
-                        src={attachment.url}
-                        height="300"
-                        align="center"
-                        allow="fullscreen"
-                        frameborder="0"
-                    />
-                {:else if attachment.type.startsWith("image/")}
-                    <img src={attachment.url} alt={attachment.title} />
-                {/if}
-            </div>
+        {#each attachments as attachment, ind (attachment.id)}
+            <FileThumb {attachment} {handleRemoveFile} />
         {/each}
         <button>+ קובץ</button>
     </div>
@@ -223,51 +203,18 @@
     label {
         cursor: pointer;
     }
-    .input-files {
+    :global(.input-files) {
         display: grid;
         gap: 5px;
         background-color: rgb(255, 253, 253);
     }
-    .input-files img {
-        object-fit: contain;
-        height: 350px;
-    }
-    .input-files > div {
-        padding: 15px 15px;
-        background-color: #e9e9e9;
-        border-radius: 10px;
-        position: relative;
-    }
-    .input-files .file-thumb {
-        display: grid;
-        gap: 5px;
-        align-items: center;
-        justify-items: center;
-    }
-    .input-files .close {
-        position: absolute;
-        border-radius: 50%;
-        left: 3px;
-        top: 3px;
-        width: 5px;
-        height: 5px;
-        color: lightgray;
-        transition: color 0.2s ease-in-out;
-        cursor: pointer;
-    }
-    .input-files .close:hover {
-        color: orangered;
-        transform: scale(1.1);
-    }
-    .input-files .close:active {
-        transform: scale(1);
-    }
-    button {
+
+    :global(.input-files button) {
         color: gray;
         background-color: transparent;
         transition: all 0.2s ease-in-out;
     }
-    button:hover {
+    :global(.input-files button:hover) {
         transform: scale(1.1);
     }
 </style>

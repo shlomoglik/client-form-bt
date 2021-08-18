@@ -6,6 +6,7 @@ import { onMount } from "svelte";
     import FileInput from "./FileInput.svelte";
     import LongTextInput from "./LongTextInput.svelte";
     import SelectInput from "./SelectInput.svelte";
+import SignatureInput from "./SignatureInput.svelte";
     import TextInput from "./TextInput.svelte";
     export let formDoc;
     export let header;
@@ -18,6 +19,8 @@ import { onMount } from "svelte";
         <SelectInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "file"}
         <FileInput {header} {formDoc} />
+    {:else if $formDoc.headers[header].type === "signature"}
+        <SignatureInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "long"}
         <LongTextInput {header} {formDoc} />
     {:else}

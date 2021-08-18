@@ -1,0 +1,9 @@
+export const O_STRING = "[object String]";
+export const O_DATE = "[object Date]";
+export const O_NUMBER = "[object Number]";
+export const O_FUNCTION = "[object Function]";
+export const O_OBJECT = "[object Object]";
+export const O_ARRAY = "[object Array]";
+export const O_UNDEFINED = "[object Undefined]";
+export const O_NULL = "[object Null]";
+export const O_PROMISE = "[object Promise]"

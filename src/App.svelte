@@ -20,6 +20,7 @@
   import { formDoc, formGroups, prompt } from "./stores";
   import Prompt from "./components/Prompt.svelte";
   import { fade, fly } from "svelte/transition";
+  import SignatureInput from "./components/SignatureInput.svelte";
 
   $: valid = $formDoc.valid;
   $: errors = $formDoc.errors;
@@ -28,31 +29,8 @@
     $formDoc.errors = errors.filter((el) => el !== item);
   }
 
-  function validateFormSubmission() {
-    $formDoc.errors = [];
-    for (const [header, value] of Object.entries($formDoc.docData)) {
-      const field = $formDoc.headers[header];
-      if (field && field.required) {
-        let isEmpty = false;
-        if (field.type === "file" && value.length === 0) isEmpty = true;
-        else if (value === "") isEmpty = true;
-        if (isEmpty) {
-          $formDoc.errors.push({
-            header,
-            type: "required",
-            text: `חסר ערך בשדה חובה - ${field.label}`,
-          });
-        }
-      }
-    }
-    if ($formDoc.errors.length > 0) $formDoc.valid = false
-    else $formDoc.valid = true
-  }
-
   async function handleOnSubmit() {
     try {
-      validateFormSubmission();
-      if (!valid) return;
       const url =
         "https://hook.integromat.com/95nczekdzhsagsr4s8fypa1e9p9booly";
       const response = await fetch(url, {
@@ -60,9 +38,9 @@
         body: JSON.stringify($formDoc.docData),
         contentType: "application/json",
       });
-      if(response.status ==200){
+      if (response.status == 200) {
         $prompt = `<div><p>לקוח נוסף בהצלחה למערכת</p><br><p>תודה<p/></div>`;
-        formDoc.reset()
+        formDoc.reset();
       }
     } catch (e) {
       console.error(e);
@@ -110,7 +88,7 @@
 
 <Auth {auth} let:loggedIn let:userDisplayValue>
   {#if $prompt}
-    <Prompt /> 
+    <Prompt />
   {/if}
   <main>
     <div class="top">
@@ -147,9 +125,16 @@
               </div>
             {/each}
           </div>
-          <button type="button" on:click={handleOnSubmit} data-disabled={!valid}
-            >צור</button
-          >
+          <SignatureInput header="clientSignature" {formDoc} />
+          {#if valid}
+            <button
+              type="button"
+              on:click={handleOnSubmit}
+              data-disabled={!valid}
+            >
+              צור
+            </button>
+          {/if}
         </div>
       </section>
     {:else}

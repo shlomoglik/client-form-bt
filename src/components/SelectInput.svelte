@@ -8,16 +8,17 @@
     export let header, formDoc;
     let valid = true;
     let error = "";
+    let search = "";
 
     const handleChangeList = () => {
         const field = $formDoc.headers[header];
-        const itemField = field.options.find(opt=>opt.id===header)
+        const itemField = field.options.find((opt) => opt.id === header);
         if (itemField && itemField.attributes) {
             Object.entries(newItem.attributes).forEach(([header, value]) => {
                 $formDoc.docData[header] = value;
             });
         }
-        validate()
+        validate();
     };
 
     onMount(async () => {
@@ -27,19 +28,9 @@
         ) {
             try {
                 // $formDoc.headers[header].options = [];
-                const result = await $formDoc.headers[header].getData();
-                const json = await result.json();
-                if (
-                    json.data &&
-                    json.data.boards[0].groups[0].items.length > 0
-                ) {
-                    const data = json.data.boards[0].groups[0].items.map(
-                        ({ name, id }) => {
-                            return { text: name, id };
-                        }
-                    );
-                    $formDoc.headers[header].options = [...data]
-                }
+                // const result = await 
+                const data = await $formDoc.headers[header].getData
+                if(data && data[0]) $formDoc.headers[header].options = [...data];
             } catch (err) {
                 console.error(err);
             }
@@ -80,10 +71,10 @@
                 }
             }
         }
-        if ($formDoc.errors.length > 0) $formDoc.valid = false
-        else $formDoc.valid = true
+        if ($formDoc.errors.length > 0) $formDoc.valid = false;
+        else $formDoc.valid = true;
     }
-    
+
     function showError() {
         $prompt = `<div><p>${error}</p></div>`;
     }
@@ -96,6 +87,9 @@
     <label for={header}>
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>
+    {#if $formDoc.headers[header].withSearch}
+        <input type="search" bind:value={search} placeholder={$formDoc.headers[header].withSearch} />
+    {/if}
     <select
         class="input__field"
         name={header}

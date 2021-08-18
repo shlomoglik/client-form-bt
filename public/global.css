@@ -5,6 +5,9 @@ body {
 	height: 100%;
 	direction: rtl;
 }
+:root {
+	--color-danger: #dc3545;
+}
 
 body {
 	color: #333;
@@ -13,9 +16,6 @@ body {
 	box-sizing: border-box;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue",
 		sans-serif;
-}
-:root {
-	--color-danger: #dc3545;
 }
 
 a {
@@ -44,8 +44,8 @@ label {
 	box-sizing: border-box;
 	border: 1px solid rgba(204, 204, 204, 0.5);
 	border-radius: 2px;
-	font-size: 24px;
-	min-width: 300px;
+	min-width: 280px;
+	max-width: 90vw;
 	min-height: 60px;
 }
 
@@ -66,14 +66,14 @@ label {
 	display: grid;
 	align-items: center;
 	justify-content: center;
-	font-size: 18px;
+	font-size: 14px;
 }
 
 button {
 	border: none;
 	outline: none;
 	font-size: 24px;
-	min-width: 300px;
+	min-width: 250px;
 	min-height: 55px;
 	cursor: pointer;
 	border-radius: 20px;
@@ -96,10 +96,6 @@ button:hover:not(:disabled) {
 button:not(:disabled):active {
 	transform: translateY(0.5px);
 }
-/* button:disabled {
-	color: #999;
-	background: none;
-} */
 
 button:focus {
 	border-color: #666;

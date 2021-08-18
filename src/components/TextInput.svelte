@@ -47,6 +47,7 @@
         }
         if ($formDoc.errors.length > 0) $formDoc.valid = false
         else $formDoc.valid = true
+        console.log($formDoc.errors);
     }
     function showError() {
         $prompt = `<div><p>${error}</p></div>`;
