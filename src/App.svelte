@@ -21,9 +21,40 @@
   import Prompt from "./components/Prompt.svelte";
   import { fade, fly } from "svelte/transition";
   import SignatureInput from "./components/SignatureInput.svelte";
+  import ContractTitle from "./components/ContractTitle.svelte";
+  import { getDisplayValue } from "./utils/data";
+  import ContractSides from "./components/contractSides/ContractSides.svelte";
+  import { onMount } from "svelte";
 
   $: valid = $formDoc.valid;
   $: errors = $formDoc.errors;
+  $: currentAddress = "";
+  let contractElem;
+  onMount(() => {
+    fetchCurrentLocation();
+  });
+  function fetchCurrentLocation() {
+    navigator.geolocation.getCurrentPosition((res) => {
+      const apiKey = "tXCWToa7qnKQz1pHe4P8ap3XUQ0kdRt9";
+      const { latitude, longitude } = res.coords;
+      const url = `http://www.mapquestapi.com/geocoding/v1/reverse?key=${apiKey}&location=${latitude},${longitude}`;
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          if (
+            data &&
+            data.results &&
+            data.results[0] &&
+            data.results[0].locations &&
+            data.results[0].locations[0]
+          ) {
+            const { street, adminArea5 } = data.results[0].locations[0];
+            currentAddress = `${adminArea5} , ${street}`;
+          }
+        });
+    });
+  }
 
   function removeError(item) {
     $formDoc.errors = errors.filter((el) => el !== item);
@@ -116,15 +147,39 @@
             />
           {/each}
         </form>
-        <div class="form-actions">
-          <div class="errors">
+        {#if contractElem}
+          <pre hidden>{contractElem.innerHTML}</pre>
+        {/if}
+        <div class="contract" bind:this={contractElem}>
+          <!-- <div class="errors">
             {#each errors as error}
               <div transition:fly>
                 {error.text}
                 <span on:click={(e) => removeError(error)}>x</span>
               </div>
             {/each}
+          </div> -->
+          <ContractTitle
+            text={`הסכם התקשרות ומתן שירותים ${getDisplayValue(
+              $formDoc.docData.package,
+              "list",
+              $formDoc.headers.package
+            )}`}
+          />
+          <div>
+            <p contenteditable>
+              {`הסכם זה נערך בתאריך${new Date().toDateString()}, בכתובת ${currentAddress}`}
+            </p>
           </div>
+          <ContractSides
+            client={{
+              name: $formDoc.docData.clientName,
+              id: $formDoc.docData.companyNumber,
+              type: $formDoc.docData.companyType
+                ? $formDoc.docData.companyType.id
+                : "",
+            }}
+          />
           <SignatureInput header="clientSignature" {formDoc} />
           {#if valid}
             <button
@@ -132,7 +187,7 @@
               on:click={handleOnSubmit}
               data-disabled={!valid}
             >
-              צור
+              בצע הזמנת עבודה
             </button>
           {/if}
         </div>
@@ -152,10 +207,10 @@
   }
 
   h1 {
-    color: #ff3e00;
+    color: var(--color-primary);
     text-transform: uppercase;
     font-size: 4em;
-    font-weight: 100;
+    font-weight: 300;
   }
   .logout {
     cursor: pointer;
@@ -182,21 +237,24 @@
     font-size: 24px;
     padding: 10px;
     justify-self: end;
-    width: 35px;
-    height: 35px;
+    align-items: center;
+    height: 45px;
+    width: 45px;
     user-select: none;
+    display: flex;
+    justify-content: center;
   }
   .form {
     padding: 5px;
     display: grid;
-    gap: 2rem;
   }
-  .form-actions {
+  .contract {
     display: grid;
     gap: 2rem;
     align-items: center;
     padding: 3rem;
-    background-color: #ff3e0012;
+    border: 10px solid #9f00ff12;
+    margin-top: 15px;
   }
 
   .errors {

@@ -27,7 +27,7 @@
     </div>
   {/if}
   {#if !isShrink}
-    <div transition:slide>
+    <div transition:slide class="inputs">
       {#each formGroup.fields as header}
         <Input {header} {formDoc} />
       {/each}
@@ -40,11 +40,11 @@
     display: grid;
     align-items: center;
     font-size: 18px;
-    gap: 2rem;
     cursor: pointer;
     border-top: 3px solid #ebebeb;
   }
   .form-group-title {
+    padding: 5px;
     display: grid;
     grid-auto-flow: column;
     grid-template-columns: 1fr 5%;
@@ -52,6 +52,11 @@
   }
   .form-group-title:hover {
     background-color: #eee;
+  }
+  .inputs {
+    display: grid;
+    gap: 5px;
+    padding: 5px;
   }
   h3 {
     font-weight: 500;

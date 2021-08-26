@@ -2,7 +2,6 @@
 <script>
   import { userDoc } from "../stores";
   export let auth
-  let user = null;
   let userDisplayValue = "...";
   $: {
     if ($userDoc && $userDoc.email) {

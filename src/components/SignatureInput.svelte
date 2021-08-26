@@ -289,5 +289,6 @@
         background-repeat: no-repeat;
         background-color: #eaecee;
         cursor: default !important;
+        border: 6px double #80008036;
     }
 </style>

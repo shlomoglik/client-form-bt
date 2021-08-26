@@ -11,3 +11,13 @@ export const isFlatArray = arr => Array.isArray(arr) && arr.every(el => typeof e
 export const objType = obj => Object.prototype.toString.call(obj);
 export const isString = input => objType(input) === O_STRING
 export const isObject = input => objType(input) === O_OBJECT
+
+
+export function getDisplayValue(value, type, field) {
+    let displayValue = ''
+    if (type === "list") {
+        const { options=[] } = field
+        displayValue = options.filter(({id}) => id===value).map(({text})=>text).join(" , ")
+    }
+    return displayValue
+}

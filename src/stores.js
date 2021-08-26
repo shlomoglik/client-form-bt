@@ -1,9 +1,36 @@
-// const MONDAY_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjM1Njc4NTQ0LCJ1aWQiOjEyMzMzODczLCJpYWQiOiIyMDIwLTAxLTI4IDE4OjQ3OjQzIFVUQyIsInBlciI6Im1lOndyaXRlIn0.c-7keL6LOa54KkO-ZOKh34Tun-qnDRQvgnLYuNXW8E4'
 import { writable } from "svelte/store";
 
+const MONDAY_URL = 'https://api.monday.com/v2/'
+
+
+export class fetchItems {
+  constructor(ids = [], dict = {}) {
+    this.ids = ids;
+    this.dict = dict;
+  }
+  async getData() {
+    const columnsValues = Object.keys(this.dict).length > 0 ? `(ids:${Object.keys(this.dict)})` : ""
+    const qry = `{
+        items(ids:${this.ids}){
+          id
+          name
+          column_values${columnsValues}{
+            id
+            type
+            title
+            text
+            value
+         }
+        }
+    }`
+    let data = await fetchMondayAPI(qry)
+    return data || []
+  }
+}
+
+
 async function fetchMondayAPI(qry) {
-  const url = 'https://api.monday.com/v2/'
-  const result = await fetch(url, {
+  const result = await fetch(MONDAY_URL, {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
@@ -13,15 +40,19 @@ async function fetchMondayAPI(qry) {
   });
   if (result && result.status === 200) {
     const json = await result.json()
-    if (json.data && json.data.boards[0].groups[0].items.length > 0) {
-      return json.data.boards[0].groups[0].items.map(
-        ({ name, id, ...rest }) => {
-          return { text: name, id, attributes: { ...rest } };
-        }
-      );
-    }
+    if (json.data) return json.data
   }
-  return []
+  // return []
+}
+
+const reduceColumns = ({ column_values = [], key = "id", dict = {} } = {}) => {
+  return column_values.reduce((acc, curr) => {
+    let field = curr[key]
+    if (dict && dict[curr[key]]) {
+      field = dict[curr[key]]
+    }
+    return { ...acc, [field]: curr }
+  }, {})
 }
 async function fetchSalesDivision() {
   const qry = `{
@@ -30,24 +61,58 @@ async function fetchSalesDivision() {
         items{
           id
           name
+          column_values{
+            id
+            type
+            title
+            text
+            value
+          }
         }
       }
     }
   }`
-  const data = await fetchMondayAPI(qry)
-  return data
+  let data = await fetchMondayAPI(qry)
+  if (data && data.boards && data.boards[0].groups[0].items.length > 0) {
+    data = data.boards[0].groups[0].items.map(
+      ({ name, id }) => {
+        return { text: name, id, attributes: {} };
+      }
+    );
+  }
+  return data || []
 }
 async function fetchProductsList() {
+  const dict = {
+    numbers: "price",
+    // numbers: "minPrice",
+    text: "productTitle",
+    subitems: "productVarietions"
+  }
   const qry = `{
-    boards(ids:___){
-        items{
-          id
-          name
+    boards(ids:1587237484){
+      items{
+        id
+        name
+        column_values(ids:[${Object.keys(dict).toString()}]){
+           id
+          type
+          title
+          text
+          value
         }
+      }
     }
   }`
-  const data = await fetchMondayAPI(qry)
-  return data
+  let data = await fetchMondayAPI(qry)
+  if (data && data.boards[0].items.length > 0) {
+    data = data.boards[0].items.map(
+      ({ name, id, column_values }) => {
+        return { text: name, id, attributes: reduceColumns({ column_values, dict }) };
+      }
+    );
+  }
+  return data || []
 }
 async function fetchAddressList() {
   const url = "https://data.gov.il/api/3/action/datastore_search?resource_id=5c78e9fa-c2e2-4771-93ff-7f400a12f7ba&limit=3000"
@@ -56,7 +121,7 @@ async function fetchAddressList() {
     const json = await result.json()
     if (json.result && json.result.records) {
       return json.result.records.map(record => {
-        Object.assign(record, { id: record._id, name: record.שם_ישוב })
+        return Object.assign(record, { id: record._id, text: record.שם_ישוב })
       })
     }
   }
@@ -75,13 +140,13 @@ const formData = {
   anohterPhone: "",
   anohterEmail: "",
   package: "",
-  dealStatus: "",
   salesMan1: "",
   salesMan2: "",
   contract: [],
   paymentAttached: [],
   clientIdAttached: [],
   clientSignature: [],
+  productVarietions: [],
   clientExpectations: "",
   notes: "",
   price: ""
@@ -100,8 +165,17 @@ const formHeaders = {
       { text: "דרום", id: "south" },
     ],
   },
+  productVarietions: { type: "list", options: [] },
   address: { label: "כתובת", withSearch: "חיפוש כתובת...", type: "list", options: [], getData: fetchAddressList },
-  companyType: { label: "סוג עוסק" },
+  companyType: {
+    label: "סוג עוסק", type: "list", options: [
+      { text: "עוסק פטור", id: "עוסק פטור" },
+      { text: "עוסק מורשה", id: "עוסק מורשה" },
+      { text: "חברה בעמ", id: "חברה בעמ" },
+      { text: "חברה מסחרית", id: "חברה מסחרית" },
+      { text: "שותפות", id: "שותפות" },
+    ]
+  },
   companyArea: { label: "תחום עיסוק" },
 
   phone: { label: "טלפון", required: true },
@@ -112,18 +186,14 @@ const formHeaders = {
   package: {
     label: "חבילה",
     type: "list",
-    options: [
-      { text: "BT-PRO", id: "BT_PRO", attributes: { price: 5000 } },
-      { text: "BT", id: "BT", attributes: { price: 5000 } },
-      { text: "DIGITAL-PRO", id: "DP", attributes: { price: 5000 } },
-      { text: "מנכלים", id: "CEO", attributes: { price: 5000 } },
-    ],
-  },
-  dealStatus: {
-    label: "סטטוס עסקה", type: "list", options: [
-      { text: "נחתם", id: "נחתם" },
-      { text: "בתהליך חתימה", id: "בתהליך חתימה" }
-    ]
+    options: [],
+    getData: fetchProductsList
+    // options: [
+    //   { text: "BT-PRO", id: "BT_PRO", attributes: { price: 5000 } },
+    //   { text: "BT", id: "BT", attributes: { price: 5000 } },
+    //   { text: "DIGITAL-PRO", id: "DP", attributes: { price: 5000 } },
+    //   { text: "מנכלים", id: "CEO", attributes: { price: 5000 } },
+    // ],
   },
   salesMan1: { label: "מתאם", type: "list", options: [], getData: fetchSalesDivision },
   salesMan2: {
@@ -219,7 +289,7 @@ export let formGroups = writable([
     isShrink: true,
     id: "dealData",
     title: "פרטי עסקה",
-    fields: ["package", "dealStatus", "salesMan1", "salesMan2"],
+    fields: ["package", "salesMan1", "salesMan2", "price"],
   },
   {
     isShrink: true,
