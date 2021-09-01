@@ -1,13 +1,16 @@
 <script>
     export let contacts = [];
-    let withContactsPrefix = `באמצעות מורש${
+    export let editable = false
+    $: withContactsPrefix = `באמצעות מורש${
         contacts.length > 1 ? "י" : "ה"
     } החתימה מטעמה:`;
 </script>
 
-<p contenteditable>{withContactsPrefix}</p>
+<p contenteditable={editable}>{withContactsPrefix}</p>
 {#if contacts && contacts[0]}
     {#each contacts as contact (contact.id)}
-        <p contenteditable>{contact.prefix} {contact.name} ת.ז. {contact.id}</p>
+        <p contenteditable="{editable}">
+            {contact.prefix ? `${contact.prefix} ` : ""}{contact.name||"____"} ת.ז. {contact.id||"____"}
+        </p>
     {/each}
 {/if}

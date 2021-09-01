@@ -21,9 +21,9 @@
 
 <div>
     <p contenteditable><strong>בין</strong></p>
-    <ContractSide {company} />
-    <Signers contacts={company.signers} />
-    <p contenteditable>
+    <ContractSide {company} editable="true" />
+    <Signers contacts={company.signers} editable="true" />
+    <p>
         <strong>מצד אחד</strong>
         <span>&nbsp;</span>
         <i>(להלן: החברה ו/או נותנת השירותים)</i>
@@ -33,9 +33,18 @@
     <p contenteditable><strong>לבין</strong></p>
     <ContractSide company={client} />
     <Signers contacts={client.signers} />
-    <p contenteditable>
+    <p>
         <strong>מצד שני</strong>
-        <span>&nbsp;<span>
-        <i>(להלן: הלקוח)</i>
+        <span
+            >&nbsp;<span>
+                <i>(להלן: הלקוח)</i>
+            </span></span
+        >
     </p>
 </div>
+
+<style>
+    div :global([contenteditable="false"]) {
+        cursor: default;
+    }
+</style>

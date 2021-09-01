@@ -1,12 +1,22 @@
 <script>
     export let name;
     export let onClick = () => null;
+    export let onOver = () => null;
     export let width = "1.5rem";
     export let height = "1.5rem";
     export let focusable = false;
+
+    let elem;
 </script>
 
-<svg on:click={onClick} class={$$props.class} {focusable} {width} {height}>
+<svg
+    bind:this={elem}
+    on:click={onClick}
+    class={$$props.class}
+    {focusable}
+    {width}
+    {height}
+>
     <use href={`/icons.svg#${name}`} />
 </svg>
 

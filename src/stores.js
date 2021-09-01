@@ -1,17 +1,18 @@
 import { writable } from "svelte/store";
+import { areasMap } from "./areas";
 
 const MONDAY_URL = 'https://api.monday.com/v2/'
 
 
 export class fetchItems {
   constructor(ids = [], dict = {}) {
-    this.ids = ids;
-    this.dict = dict;
+    this.ids = ids || [];
+    this.dict = dict || {};
   }
   async getData() {
-    const columnsValues = Object.keys(this.dict).length > 0 ? `(ids:${Object.keys(this.dict)})` : ""
+    const columnsValues = (this.dict && Object.keys(this.dict).length > 0) ? `(ids:[${Object.keys(this.dict)}])` : ""
     const qry = `{
-        items(ids:${this.ids}){
+        items(ids:[${this.ids}]){
           id
           name
           column_values${columnsValues}{
@@ -24,6 +25,13 @@ export class fetchItems {
         }
     }`
     let data = await fetchMondayAPI(qry)
+    if (data && data.items.length > 0) {
+      data = data.items.map(
+        ({ name, id, column_values }) => {
+          return { text: name, id, attributes: reduceColumns({ column_values, dict: this.dict }) };
+        }
+      );
+    }
     return data || []
   }
 }
@@ -85,7 +93,7 @@ async function fetchSalesDivision() {
 async function fetchProductsList() {
   const dict = {
     numbers: "price",
-    // numbers: "minPrice",
+    status93: "retainerOrDeal",
     text: "productTitle",
     subitems: "productVarietions"
   }
@@ -127,8 +135,11 @@ async function fetchAddressList() {
   }
   return []
 }
-const formData = {
+
+
+const initFormData = {
   clientName: "",
+  clientNumber: "",
   companyName: "",
   companyNumber: "",
   area: "",
@@ -140,22 +151,29 @@ const formData = {
   anohterPhone: "",
   anohterEmail: "",
   package: "",
+  contractPeriod: "",
   salesMan1: "",
   salesMan2: "",
   contract: [],
   paymentAttached: [],
   clientIdAttached: [],
   clientSignature: [],
-  productVarietions: [],
+  productVarietions: "",
   clientExpectations: "",
   notes: "",
-  price: ""
+  price: "",
+  priceIncludeVAT: "",
+  contractStartDate: "",
+  retainerOrDeal: ""
 }
 const formHeaders = {
   clientName: { label: "שם הלקוח", required: true },
+  clientNumber: { label: "ת.ז.", required: true },
   companyName: { label: "שם העסק (רשויות)", required: true },
-  companyNumber: { label: "ת.ז. | ח.פ", required: true },
-  price: { label: "סכום עסקה" },
+  companyNumber: { label: "מספר עוסק", required: true },
+  price: { label: "סכום עסקה לפני מעמ", type: "number" },
+  priceIncludeVAT: { label: "סכום עסקה כולל מעמ", type: "number", depend: { price: "EXIST" }, disabled: true },
+  retainerOrDeal: { label: "רייטיינר / חד פעמי" },
   area: {
     label: "איזור בארץ",
     type: "list",
@@ -164,9 +182,22 @@ const formHeaders = {
       { text: "מרכז", id: "center" },
       { text: "דרום", id: "south" },
     ],
+    reset: ["address"],
   },
-  productVarietions: { type: "list", options: [] },
-  address: { label: "כתובת", withSearch: "חיפוש כתובת...", type: "list", options: [], getData: fetchAddressList },
+  productVarietions: { type: "list", options: [], label: "סיווג מוצר", dict: { numbers: "price" } },
+  address: {
+    label: "כתובת", withSearch: "חיפוש כתובת...",
+    type: "list",
+    options: [],
+    getData: fetchAddressList,
+    filter: (list = [], formData = {}) => {
+      if (!formData.area) return list
+      return list.filter(el => {
+        const { area_id = "" } = areasMap[el['סמל_נפה'].trim()] || {}
+        return area_id ? area_id == formData.area : true
+      })
+    }
+  },
   companyType: {
     label: "סוג עוסק", type: "list", options: [
       { text: "עוסק פטור", id: "עוסק פטור" },
@@ -180,14 +211,15 @@ const formHeaders = {
 
   phone: { label: "טלפון", required: true },
   email: { label: "אימייל", required: true },
-  anohterPhone: { label: "טלפון נוסף" },
-  anohterEmail: { label: "אימייל נוסף" },
+  anohterPhone: { label: "טלפון נוסף", depend: { phone: "EXIST" } },
+  anohterEmail: { label: "אימייל נוסף", depend: { email: "EXIST" } },
 
   package: {
     label: "חבילה",
     type: "list",
     options: [],
-    getData: fetchProductsList
+    getData: fetchProductsList,
+    reset: ["productVarietions"],
     // options: [
     //   { text: "BT-PRO", id: "BT_PRO", attributes: { price: 5000 } },
     //   { text: "BT", id: "BT", attributes: { price: 5000 } },
@@ -195,6 +227,8 @@ const formHeaders = {
     //   { text: "מנכלים", id: "CEO", attributes: { price: 5000 } },
     // ],
   },
+  contractPeriod: { label: "תקופת ההתקשרות בחודשים", type: "number" },
+  contractStartDate: { label: "תאריך תחילת ההתקשרות", type: "date" },
   salesMan1: { label: "מתאם", type: "list", options: [], getData: fetchSalesDivision },
   salesMan2: {
     label: "סוכן שטח", type: "list",
@@ -208,10 +242,10 @@ const formHeaders = {
       { text: "ישורון גליקמן", id: "12366457" },
     ]
   },
-  contract: { label: "הסכם חתום", type: "file", options: { multiple: false } },
+  contract: { label: "הסכם חתום", type: "file", options: { multiple: true } },
 
-  paymentAttached: { label: "צ'קים", type: "file", required: true, options: { multiple: false } },
-  clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file", required: true, options: { multiple: false } },
+  paymentAttached: { label: "צ'קים", type: "file", required: true, options: { multiple: true } },
+  clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file", required: true, options: { multiple: true } },
 
   clientExpectations: {
     label: "תיאום ציפיות",
@@ -253,15 +287,22 @@ function initForm(_headers, _docData) {
     subscribe,
     set,
     update,
-    updateField: function (header, data) {
-      this.update(curr => {
-        console.log(curr, header, data)
+    updateField: function (header, value) {
+      this.update((store) => {
+        const docData = Object.assign(store.docData, { [header]: value })
+        const updateStore = {
+          valid: store.valid,
+          errors: store.errors,
+          headers: store.headers,
+          docData: { ...docData }
+        }
+        return updateStore
       })
     },
-    reset: () => set({ docData: { ...formData }, errors: [], valid: false, headers }),
+    reset: () => set({ docData: { ...initFormData }, errors: [], valid: false, headers }),
   }
 }
-export const formDoc = initForm(formHeaders, formData);
+export const formDoc = initForm(formHeaders, initFormData);
 
 
 export let formGroups = writable([
@@ -271,6 +312,7 @@ export let formGroups = writable([
     title: "פרטי לקוח",
     fields: [
       "clientName",
+      "clientNumber",
       "companyName",
       "companyNumber",
       "area",
@@ -289,7 +331,7 @@ export let formGroups = writable([
     isShrink: true,
     id: "dealData",
     title: "פרטי עסקה",
-    fields: ["package", "salesMan1", "salesMan2", "price"],
+    fields: ["package", "productVarietions", "price", "priceIncludeVAT", "contractStartDate", "contractPeriod", "salesMan1", "salesMan2",],
   },
   {
     isShrink: true,

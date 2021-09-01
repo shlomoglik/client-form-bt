@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
 
     import { prompt } from "../stores";
+import { getDisplayValue } from "../utils/data";
     import Icon from "./Icon.svelte";
 
     export let header, formDoc;
@@ -45,8 +46,8 @@
                 }
             }
         }
-        if ($formDoc.errors.length > 0) $formDoc.valid = false
-        else $formDoc.valid = true
+        if ($formDoc.errors.length > 0) $formDoc.valid = false;
+        else $formDoc.valid = true;
     }
     function showError() {
         $prompt = `<div><p>${error}</p></div>`;
@@ -60,13 +61,19 @@
     <label for={header}>
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>
-    <input
-        class="input__field"
-        type="text"
-        name={header}
-        id={header}
-        bind:value={$formDoc.docData[header]}
-        on:blur={validate}
-        required={$formDoc.docData[header].required}
-    />
+    {#if !$formDoc.headers[header].disabled}
+        <input
+            class="input__field"
+            type="number"
+            name={header}
+            id={header}
+            bind:value={$formDoc.docData[header]}
+            on:blur={validate}
+            required={$formDoc.docData[header].required}
+        />
+    {:else}
+        <div class="input__field">
+            {getDisplayValue($formDoc.docData[header], "number")}
+        </div>
+    {/if}
 </div>

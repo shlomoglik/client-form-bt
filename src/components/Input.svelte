@@ -1,20 +1,31 @@
 <script>
-    import { onMount } from "svelte";
-
-    // import { formDoc } from "../stores";
     import DateInput from "./DateInput.svelte";
     import FileInput from "./FileInput.svelte";
     import LongTextInput from "./LongTextInput.svelte";
+    import NumberInput from "./NumberInput.svelte";
     import SelectInput from "./SelectInput.svelte";
     import SignatureInput from "./SignatureInput.svelte";
     import TextInput from "./TextInput.svelte";
     export let formDoc;
     export let header;
+    $: show = true;
+    $: {
+        if ($formDoc.headers[header].depend) {
+            Object.entries($formDoc.headers[header].depend).forEach(
+                ([depKey, depValue]) => {
+                    if (depValue === "EXIST")
+                        show = $formDoc.docData[depKey] ? true : false;
+                }
+            );
+        }
+    }
 </script>
 
-{#if $formDoc.headers[header]}
+{#if $formDoc.headers[header] && show}
     {#if $formDoc.headers[header].type === "date"}
         <DateInput {header} {formDoc} />
+    {:else if $formDoc.headers[header].type === "number"}
+        <NumberInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "list"}
         <SelectInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "file"}
@@ -44,6 +55,10 @@
         min-width: 280px;
         max-width: 90vw;
         min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
     }
 
     :global(.input__field:disabled) {

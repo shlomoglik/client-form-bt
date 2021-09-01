@@ -12,8 +12,21 @@
     let error = "";
     $: search = "";
     let listOpen = false;
-    let displayValue = "";
-    const getDisplayValue = () => {
+    $: displayValue = "";
+    $: list = [];
+    $: {
+        if ($formDoc.headers[header].options) {
+            list = $formDoc.headers[header].options;
+        }
+        if ($formDoc.headers[header].filter) {
+            list = $formDoc.headers[header].filter(
+                $formDoc.headers[header].options,
+                $formDoc.docData
+            );
+        }
+        displayValue = showDisplayValue();
+    }
+    const showDisplayValue = () => {
         let value = "";
         if ($formDoc.docData[header]) {
             const field = $formDoc.headers[header];
@@ -31,7 +44,7 @@
 
     const handleChangeList = (elemID) => {
         $formDoc.docData[header] = elemID;
-        displayValue = getDisplayValue();
+        // displayValue = showDisplayValue();
         closeList();
 
         // set up attributes
@@ -40,7 +53,7 @@
         if (itemField && itemField.attributes) {
             Object.entries(itemField.attributes).forEach(([header, value]) => {
                 if (objType(value) === O_OBJECT) {
-                    if (value.type === "text") {
+                    if (value.type === "text" || value.type === "color") {
                         $formDoc.docData[header] = value.text;
                     } else if (value.type === "subtasks") {
                         const data = [];
@@ -49,8 +62,25 @@
                                 (el) => data.push(el.linkedPulseId)
                             );
                         }
-                        $formDoc.docData[header] = data;
-                        if($formDoc.headers[header])$formDoc.headers[header].getData = new fetchItems(data).getData
+                        if ($formDoc.headers[header]) {
+                            const fetchClass = new fetchItems(
+                                data,
+                                $formDoc.headers[header].dict || {}
+                            );
+                            $formDoc.headers[header].getData =
+                                fetchClass.getData;
+                            Promise.resolve(fetchClass.getData()).then(
+                                (data) => {
+                                    if (data && Array.isArray(data)) {
+                                        $formDoc.headers[header].options = [
+                                            ...data,
+                                        ];
+                                    } else {
+                                        $formDoc.headers[header].options = [];
+                                    }
+                                }
+                            );
+                        }
                     } else if (value.type === "numeric") {
                         $formDoc.docData[header] = parseFloat(value.text);
                     }
@@ -58,6 +88,9 @@
                     $formDoc.docData[header] = value;
                 }
             });
+        }
+        if (field.reset) {
+            field.reset.forEach((header) => ($formDoc.docData[header] = ""));
         }
         validate();
     };
@@ -71,21 +104,19 @@
                 // $formDoc.headers[header].options = [];
                 // const result = await
                 const data = await $formDoc.headers[header].getData();
-                if (data)
-                    $formDoc.headers[header].options = [...data];
+                if (data) $formDoc.headers[header].options = [...data];
             } catch (err) {
                 console.error(err);
             }
         }
         validateField();
-        displayValue = getDisplayValue();
+        list = $formDoc.headers[header].options;
+        // displayValue = showDisplayValue();
     });
 
     function validate() {
         validateFormSubmission();
         validateField();
-        console.log($formDoc.docData);
-        console.log($formDoc.headers);
     }
     function validateField() {
         const hasErrors = $formDoc.errors.filter(
@@ -120,6 +151,18 @@
         else $formDoc.valid = true;
     }
 
+    function clearSelection(e) {
+        e.stopPropagation();
+        $formDoc.docData[header] = "";
+        closeList();
+        const field = $formDoc.headers[header];
+        if (field.reset) {
+            field.reset.forEach((header) => ($formDoc.docData[header] = ""));
+        }
+        validate();
+        // displayValue = "";
+    }
+
     function showError() {
         $prompt = `<div><p>${error}</p></div>`;
     }
@@ -145,7 +188,20 @@
         id={header}
         on:click={() => (listOpen = !listOpen)}
     >
-        {displayValue}
+        {#if displayValue}
+            <span>
+                {displayValue}
+                <Icon
+                    width="1rem"
+                    height="1rem"
+                    onClick={(e) => clearSelection(e)}
+                    name="icon-x"
+                    class="icon-x"
+                />
+            </span>
+        {:else}
+            ---
+        {/if}
         <Icon name={listOpen ? "icon-up" : "icon-down"} class="icon" />
         <ul class:active={listOpen} on:click|stopPropagation>
             {#if $formDoc.headers[header].withSearch}
@@ -155,7 +211,7 @@
                     placeholder={$formDoc.headers[header].withSearch}
                 />
             {/if}
-            {#each $formDoc.headers[header].options as option (option.id)}
+            {#each list as option (option.id)}
                 {#if isMatchSearchTerm(option)}
                     <li
                         on:click|stopPropagation={() =>
@@ -170,11 +226,27 @@
 </div>
 
 <style>
+    .input__field :global(.icon-x) {
+        transition: all 0.2s ease-in-out;
+    }
+    .input__field :global(.icon-x:hover) {
+        transform: scale(1.3);
+        fill: var(--color-danger);
+    }
     .input__field {
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    .input__field > span {
+        padding: 5px 10px;
+        border-radius: 15px;
+        background-color: #d3d3d338;
+        min-width: 50%;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-columns: 1fr min-content;
     }
     input[type="search"] {
         width: 100%;
@@ -212,7 +284,7 @@
     li:hover {
         background-color: #e3e3e3;
     }
-    .input__field :global(svg) {
+    .input__field > :global(svg) {
         position: absolute;
         left: 0;
         top: 50%;
