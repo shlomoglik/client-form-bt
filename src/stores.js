@@ -95,6 +95,7 @@ async function fetchProductsList() {
     numbers: "price",
     status93: "retainerOrDeal",
     text: "productTitle",
+    numbers3: "contractPeriod",
     subitems: "productVarietions"
   }
   const qry = `{
@@ -137,6 +138,51 @@ async function fetchAddressList() {
 }
 
 
+export const producstList = writable([
+  {
+    id: "11",
+    active: false,
+    category: "1",
+    text: "ליווי וניהול שוטף",
+    packages: ["1587242441", "1587791621"],
+  },
+  {
+    id: "12",
+    active: false,
+    category: "1",
+    text: "בקרת הנהלה בכירה",
+    packages: ["1587242441", "1587791621"],
+  },
+  {
+    id: "21",
+    active: false,
+    category: "2",
+    text: "ניהול תזרים מזומנים",
+    packages: ["1587791621"],
+  },
+  {
+    id: "22",
+    active: false,
+    category: "2",
+    text: "בניית מפה כלכלית לעסק",
+    packages: ["1587242441", "1587791621"],
+  },
+  {
+    id: "31",
+    active: false,
+    category: "3",
+    text: "ניהול קמפיינים בפייסבוק",
+    packages: ["1587242441", "1587791621"],
+  },
+  {
+    id: "32",
+    active: false,
+    category: "3",
+    text: "חיבור למערכת ניהול לידים",
+    packages: ["1587242441", "1587791621"],
+  },
+])
+
 const initFormData = {
   clientName: "",
   clientNumber: "",
@@ -151,9 +197,10 @@ const initFormData = {
   anohterPhone: "",
   anohterEmail: "",
   package: "",
-  contractPeriod: "",
+  contractPeriod: 1,
   salesMan1: "",
   salesMan2: "",
+  payments: [],
   contract: [],
   paymentAttached: [],
   clientIdAttached: [],
@@ -161,13 +208,14 @@ const initFormData = {
   productVarietions: "",
   clientExpectations: "",
   notes: "",
-  price: "",
-  priceIncludeVAT: "",
+  price: 0,
+  priceIncludeVAT: 0,
   contractStartDate: "",
   retainerOrDeal: ""
 }
 const formHeaders = {
   clientName: { label: "שם הלקוח", required: true },
+  payments: { label: "לוח תשלומים"  },
   clientNumber: { label: "ת.ז.", required: true },
   companyName: { label: "שם העסק (רשויות)", required: true },
   companyNumber: { label: "מספר עוסק", required: true },

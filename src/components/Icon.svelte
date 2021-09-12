@@ -1,7 +1,6 @@
 <script>
     export let name;
     export let onClick = () => null;
-    export let onOver = () => null;
     export let width = "1.5rem";
     export let height = "1.5rem";
     export let focusable = false;

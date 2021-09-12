@@ -1,4 +1,5 @@
 <script>
+    //THINK: use https://developers.google.com/web/fundamentals/media/capturing-images to grap images directly from camera!
     import { prompt } from "../stores";
     import { uuid } from "../utils/data";
     import firebase from "firebase/app";
@@ -18,8 +19,12 @@
     let files;
     let attachments = [];
 
+
     onMount(() => {
         validateField();
+        // if('mediaDevices' in navigator){
+        //     console.log("TODO: add option to grap from device")
+        // }
     });
 
     function validate() {
@@ -72,7 +77,7 @@
             await child.delete();
             attachments = attachments.filter((file) => file.id !== id);
             $formDoc.docData[header] = attachments;
-            validate()
+            validate();
         } catch (err) {
             console.error("error on FileDoc.remove() \n", err);
         }
@@ -118,7 +123,7 @@
                     );
                     attachments = [...attachments, docData];
                     $formDoc.docData[header] = attachments;
-                    validate()
+                    validate();
                     console.log("load end", url);
                 } catch (err) {
                     console.error(err);
@@ -171,7 +176,7 @@
     // };
 </script>
 
-<div class="input" data-error={!valid} tabindex="0" on:blur="{validate}">
+<div class="input" data-error={!valid} tabindex="0" on:blur={validate}>
     {#if !valid}
         <Icon name="icon-warning" onClick={showError} />
     {/if}
@@ -185,6 +190,7 @@
         name={header}
         id={header}
         bind:files
+        multiple
         onChange={handleFileChange}
         required={$formDoc.docData[header].required}
     />

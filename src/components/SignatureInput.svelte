@@ -19,6 +19,7 @@
 
     let showPanel = true;
     let canvas;
+    let globalWindow;
     let clickX = [];
     let clickY = [];
     let clickDrag = [];
@@ -129,6 +130,7 @@
             await child.delete();
             attachments = attachments.filter((file) => file.id !== id);
             $formDoc.docData[header] = attachments;
+            if (attachments.length === 0) showPanel = true;
         } catch (err) {
             console.error("error on FileDoc.remove() \n", err);
         }
@@ -187,19 +189,28 @@
 
     onMount(() => {
         validateField();
-        canvas.onmousedown = (e = new MouseEvent("move")) => {
+        canvas.onpointerdown = (e = new PointerEvent("down")) => {
             e.preventDefault();
             e.stopPropagation();
             const x = e.pageX - canvas.offsetLeft;
             const y = e.pageY - canvas.offsetTop;
             paint = true;
             addClick(x, y, false);
-            console.log(x, y);
+            // console.log(x, y);
             redraw(canvas);
         };
-        canvas.onmousemove = (e = new MouseEvent("move")) => {
+        canvas.onpointermove = (e = new PointerEvent("move")) => {
             e.preventDefault();
             e.stopPropagation();
+
+            document.addEventListener(
+                "touchmove",
+                (event) => {
+                    if (event.cancelable && paint) event.preventDefault();
+                },
+                { passive: false }
+            );
+
             const x = e.pageX - canvas.offsetLeft;
             const y = e.pageY - canvas.offsetTop;
             if (paint) {
@@ -207,17 +218,16 @@
                 redraw(canvas);
             }
         };
-        canvas.onmouseup = (e) => (paint = false);
-        canvas.onmouseleave = (e) => (paint = false);
+        canvas.onpointerup = (e) => (paint = false);
+        canvas.onpointerleave = (e) => (paint = false);
     });
-
 
     function togglePanel() {
         showPanel = !showPanel;
     }
 </script>
 
-<div class="input" data-error={!valid} >
+<div class="input" data-error={!valid}>
     {#if !valid}
         <Icon name="icon-warning" onClick={showError} />
     {/if}

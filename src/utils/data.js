@@ -12,6 +12,8 @@ export const objType = obj => Object.prototype.toString.call(obj);
 export const isString = input => objType(input) === O_STRING
 export const isObject = input => objType(input) === O_OBJECT
 
+export const addMonths = (monthsToAdd=0, d = new Date()) => new Date(d.getFullYear(), d.getMonth() + parseInt(monthsToAdd), d.getDate());
+
 
 export function getDisplayValue(value, type, settings = {}) {
     let displayValue = ''
@@ -96,6 +98,8 @@ export function formatDateDisplay(date, options = {}) {
         output = d + "/" + m + "/" + y;
     } else if (outputFormat === "dd/mm/yy") {
         output = d + "/" + m + "/" + y.toString().substring(2);
+    } else if (outputFormat === "yyyy-MM-dd") {
+        output = y + "-" + m + "-" + d
     } else if (outputFormat === "dd=>mm") {
         const months = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]
         const monthName = months[date.getMonth() % 12]

@@ -22,10 +22,15 @@
   import { fade, fly } from "svelte/transition";
   import SignatureInput from "./components/SignatureInput.svelte";
   import ContractTitle from "./components/ContractTitle.svelte";
-  import { getDisplayValue } from "./utils/data";
+  import { formatDateDisplay, getDisplayValue } from "./utils/data";
   import ContractSides from "./components/contractSides/ContractSides.svelte";
   import { onMount } from "svelte";
   import ContractWhereas from "./components/ContractWhereas.svelte";
+  import Subs from "./components/Subs.svelte";
+  import { select_multiple_value } from "svelte/internal";
+  import CollapsibleGroup from "./components/CollapsibleGroup.svelte";
+  import PaymentsTable from "./components/PaymentsTable.svelte";
+  import ContractProducts from "./components/ContractProducts.svelte";
 
   $: valid = $formDoc.valid;
   $: errors = $formDoc.errors;
@@ -134,45 +139,77 @@
     2: {
       text: "הצעת מחיר ומבנה ההתקשרות",
       size: "M",
-      size: "priceQuote",
+      id: "priceQuote",
       subText: "להלן: נספח הצעת מחיר",
     },
     3: {
       text: "תנאים מסחריים",
+      id: "terms",
       size: "M",
-    },
-  };
-
-  const serviceContent = {
-    DP: {
-      groups: [
-        {
-          id: "managing",
-          text: "ניהול שוטף",
-        },
-        {
-          id: "biz",
-          text: "ניהול עסקי וארגוני",
-        },
-        {
-          id: "digital",
-          text: "ניהול וביצוע דיגיטל",
-        },
-      ],
-      items: [],
     },
   };
 
   const wheres = [
     {
       text: `והוסכם כי נותנת השירותים תספק שירות ללקוח כמפורט בנספחים לעיל 
-      (להלן: נספח <strong>"הצעת מחיר"</strong> ונספח <strong>"תכולת שירותים"</strong> );
+      (להלן: נספח <strong>"הצעת מחיר"</strong> ונספח <strong>"תכולת השירות"</strong> );
       יצויין כי נספחים אלה הינם חלק בלתי נפרד מהסכם זה;`,
       prefix: "הואיל",
     },
     {
       text: "וברצון הצדדים להתקשר בהסכם התקשרות ומתן שירותים זה;",
     },
+  ];
+
+  // const products = [
+  //   {
+  //     id: "11",
+  //     active: false,
+  //     category: "1",
+  //     text: "ליווי וניהול שוטף",
+  //     packages: ["1587242441", "1587791621"],
+  //   },
+  //   {
+  //     id: "12",
+  //     active: false,
+  //     category: "1",
+  //     text: "בקרת הנהלה בכירה",
+  //     packages: ["1587242441", "1587791621"],
+  //   },
+  //   {
+  //     id: "21",
+  //     active: false,
+  //     category: "2",
+  //     text: "ניהול תזרים מזומנים",
+  //     packages: ["1587791621"],
+  //   },
+  //   {
+  //     id: "22",
+  //     active: false,
+  //     category: "2",
+  //     text: "בניית מפה כלכלית לעסק",
+  //     packages: ["1587242441", "1587791621"],
+  //   },
+  //   {
+  //     id: "31",
+  //     active: false,
+  //     category: "3",
+  //     text: "ניהול קמפיינים בפייסבוק",
+  //     packages: ["1587242441", "1587791621"],
+  //   },
+  //   {
+  //     id: "32",
+  //     active: false,
+  //     category: "3",
+  //     text: "חיבור למערכת ניהול לידים",
+  //     packages: ["1587242441", "1587791621"],
+  //   },
+  // ];
+
+  const categories = [
+    { id: "1", text: "כללי" },
+    { id: "2", text: "פיננסי" },
+    { id: "3", text: "פרסום" },
   ];
 
   const subs = [
@@ -257,12 +294,12 @@
     },
   ];
 
-  const DOC_DATA_PATTERN = /#_([a-zA-Z]+)_#/gm;
-  const INDEX_PATTERN = /&_([\d\.]+)_&/gm;
-  const replaceDocData = (_, match) =>
-    $formDoc.docData[match] ? $formDoc.docData[match] : "____";
-  const replaceIndex = (_, match) =>
-    subs.find(({ index }) => index == match)?.index || "____";
+  // const DOC_DATA_PATTERN = /#_([a-zA-Z]+)_#/gm;
+  // const INDEX_PATTERN = /&_([\d\.]+)_&/gm;
+  // const replaceDocData = (_, match) =>
+  //   $formDoc.docData[match] ? $formDoc.docData[match] : "____";
+  // const replaceIndex = (_, match) =>
+  //   subs.find(({ index }) => index == match)?.index || "____";
 </script>
 
 <Auth {auth} let:loggedIn let:userDisplayValue>
@@ -295,6 +332,14 @@
             />
           {/each}
         </form>
+        <CollapsibleGroup title="נספח חלוקת תשלומים" isShrink shrinkable>
+          <PaymentsTable
+            {formDoc}
+            defaultDate={$formDoc.docData.contractStartDate}
+            defaultPrice={$formDoc.docData.priceIncludeVAT}
+            defatultPayments={$formDoc.docData.contractPeriod}
+          />
+        </CollapsibleGroup>
         {#if contractElem}
           <pre hidden>{contractElem.innerHTML}</pre>
         {/if}
@@ -321,7 +366,9 @@
           />
           <div>
             <p contenteditable>
-              {`הסכם זה נערך בתאריך${new Date().toDateString()}, בכתובת ${currentAddress}`}
+              {`הסכם זה נערך בתאריך ${formatDateDisplay(new Date(), {
+                outputFormat: "dd=>mm",
+              })}, בכתובת ${currentAddress}`}
             </p>
           </div>
           <ContractSides
@@ -342,6 +389,7 @@
             size={appendix[1].size}
             subText={appendix[1].subText}
           />
+          <ContractProducts {categories} {formDoc} />
           <ContractTitle
             text={appendix[2].text}
             size={appendix[2].size}
@@ -393,15 +441,7 @@
           {#each wheres as { text, prefix }, ind}
             <ContractWhereas {text} {prefix} />
           {/each}
-          <ol class="subs">
-            {#each subs as sub}
-              <li class="sub" contenteditable={sub.editable}>
-                {@html sub.text
-                  .replaceAll(DOC_DATA_PATTERN, replaceDocData)
-                  .replaceAll(INDEX_PATTERN, replaceIndex)}
-              </li>
-            {/each}
-          </ol>
+          <Subs {subs} {formDoc} />
           <SignatureInput header="clientSignature" {formDoc} />
           {#if valid}
             <button
@@ -490,18 +530,18 @@
     display: grid;
     gap: 2rem;
     align-items: center;
-    padding: 3rem;
+    padding: 5%;
     border: 10px solid #9f00ff12;
     margin-top: 15px;
   }
-  ol .sub {
+  /* ol .sub {
     text-align: justify;
   }
   ol.subs {
     display: grid;
     gap: 5px;
     padding: 0 10vw;
-  }
+  } */
   /* 
   .errors {
     display: grid;
