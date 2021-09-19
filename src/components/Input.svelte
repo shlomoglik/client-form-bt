@@ -4,6 +4,7 @@
     import LongTextInput from "./LongTextInput.svelte";
     import NumberInput from "./NumberInput.svelte";
     import SelectInput from "./SelectInput.svelte";
+import SelectMultiple from "./SelectMultiple.svelte";
     import SignatureInput from "./SignatureInput.svelte";
     import TextInput from "./TextInput.svelte";
     export let formDoc;
@@ -28,6 +29,8 @@
         <NumberInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "list"}
         <SelectInput {header} {formDoc} />
+    {:else if $formDoc.headers[header].type === "list_multiple"}
+        <SelectMultiple {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "file"}
         <FileInput {header} {formDoc} />
     {:else if $formDoc.headers[header].type === "signature"}

@@ -10,13 +10,17 @@
         address: "",
         signers: [{ prefix: "", name: "", id: "" }],
     };
-    export let company = {
+    export let company = {};
+    const defaultOptions = {
         name: `א.א.י.נ. ביזנס טיים בע"מ`,
         id: "515988376",
         type: "חברה בעמ",
         address: "",
         signers: [{ prefix: "מר", name: "אייל אסולין", id: "03281184" }],
     };
+    Object.entries(defaultOptions).forEach(([opt, val]) => {
+        if (!company[opt]) company[opt] = val;
+    });
 </script>
 
 <div>

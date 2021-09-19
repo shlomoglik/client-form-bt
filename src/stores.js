@@ -1,7 +1,7 @@
 import { writable } from "svelte/store";
 import { areasMap } from "./areas";
-
-const MONDAY_URL = 'https://api.monday.com/v2/'
+import { reduceColumns } from "./utils/data";
+import { fetchMondayAPI } from "./services/monday";
 
 
 export class fetchItems {
@@ -37,31 +37,7 @@ export class fetchItems {
 }
 
 
-async function fetchMondayAPI(qry) {
-  const result = await fetch(MONDAY_URL, {
-    method: 'post',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': MONDAY_TOKEN
-    },
-    body: JSON.stringify({ 'query': qry })
-  });
-  if (result && result.status === 200) {
-    const json = await result.json()
-    if (json.data) return json.data
-  }
-  // return []
-}
 
-const reduceColumns = ({ column_values = [], key = "id", dict = {} } = {}) => {
-  return column_values.reduce((acc, curr) => {
-    let field = curr[key]
-    if (dict && dict[curr[key]]) {
-      field = dict[curr[key]]
-    }
-    return { ...acc, [field]: curr }
-  }, {})
-}
 async function fetchSalesDivision() {
   const qry = `{
     boards(ids:443471251){
@@ -90,6 +66,37 @@ async function fetchSalesDivision() {
   }
   return data || []
 }
+async function fetchSalesAgents() {
+  const dict = {
+    name: "salesAgentName",
+    email2: "salseAgentEmail",
+    text90: "salseAgentID",
+  }
+  const qry = `{
+    items_by_column_values(board_id: 443471251, column_id: "________", column_value: "v"){ 
+      id
+      name
+      column_values(ids:[${Object.keys(dict).toString()}]) {
+        id
+        type
+        title
+        text
+        value
+      }
+  }
+}`
+  let data = await fetchMondayAPI(qry)
+  if (data && data.items_by_column_values && data.items_by_column_values.length > 0) {
+    data = data.items_by_column_values.map(
+      ({ name, id, column_values }) => {
+        return { text: name, id, attributes: reduceColumns({ column_values: [{ id: "name", text: name, value: name, type: "text" }, ...column_values], dict }) };
+      }
+    );
+  }
+  return data || []
+}
+
+
 async function fetchProductsList() {
   const dict = {
     numbers: "price",
@@ -167,20 +174,6 @@ export const producstList = writable([
     text: "בניית מפה כלכלית לעסק",
     packages: ["1587242441", "1587791621"],
   },
-  {
-    id: "31",
-    active: false,
-    category: "3",
-    text: "ניהול קמפיינים בפייסבוק",
-    packages: ["1587242441", "1587791621"],
-  },
-  {
-    id: "32",
-    active: false,
-    category: "3",
-    text: "חיבור למערכת ניהול לידים",
-    packages: ["1587242441", "1587791621"],
-  },
 ])
 
 const initFormData = {
@@ -198,10 +191,15 @@ const initFormData = {
   anohterEmail: "",
   package: "",
   contractPeriod: 1,
-  salesMan1: "",
-  salesMan2: "",
+  salesMan: "",
+  salesAgent: "",
+  feeStartDate: "",
+  noOfPayments: 12,
   payments: [],
   contract: [],
+  salesAgentName: "",
+  salseAgentEmail: "",
+  salseAgentID: "",
   paymentAttached: [],
   clientIdAttached: [],
   clientSignature: [],
@@ -215,7 +213,7 @@ const initFormData = {
 }
 const formHeaders = {
   clientName: { label: "שם הלקוח", required: true },
-  payments: { label: "לוח תשלומים"  },
+  payments: { label: "לוח תשלומים" },
   clientNumber: { label: "ת.ז.", required: true },
   companyName: { label: "שם העסק (רשויות)", required: true },
   companyNumber: { label: "מספר עוסק", required: true },
@@ -262,35 +260,18 @@ const formHeaders = {
   anohterPhone: { label: "טלפון נוסף", depend: { phone: "EXIST" } },
   anohterEmail: { label: "אימייל נוסף", depend: { email: "EXIST" } },
 
-  package: {
-    label: "חבילה",
-    type: "list",
-    options: [],
-    getData: fetchProductsList,
-    reset: ["productVarietions"],
-    // options: [
-    //   { text: "BT-PRO", id: "BT_PRO", attributes: { price: 5000 } },
-    //   { text: "BT", id: "BT", attributes: { price: 5000 } },
-    //   { text: "DIGITAL-PRO", id: "DP", attributes: { price: 5000 } },
-    //   { text: "מנכלים", id: "CEO", attributes: { price: 5000 } },
-    // ],
-  },
+  package: { label: "חבילה", type: "list", options: [], getData: fetchProductsList, reset: ["productVarietions"] },
   contractPeriod: { label: "תקופת ההתקשרות בחודשים", type: "number" },
   contractStartDate: { label: "תאריך תחילת ההתקשרות", type: "date" },
-  salesMan1: { label: "מתאם", type: "list", options: [], getData: fetchSalesDivision },
-  salesMan2: {
-    label: "סוכן שטח", type: "list",
-    options: [
-      { text: "עידן כהן", id: "20499445" },
-      { text: "ישראל בועז שטרית", id: "23185896" },
-      { text: "רון אזרן", id: "15960469" },
-      { text: "אייל אסולין", id: "12478041" },
-      { text: "ישראל סויסה", id: "23381794" },
-      { text: "עמית מרציאנו", id: "23573246" },
-      { text: "ישורון גליקמן", id: "12366457" },
-    ]
-  },
+  feeStartDate: { label: "תאריך תשלום ראשון", type: "date" },
+  noOfPayments: { label: "חלוקה למספר תשלומים", type: "number" },
+  salesMan: { label: "מתאם", type: "list", options: [], getData: fetchSalesDivision },
+  salesAgent: { label: "סוכן שטח", type: "list", options: [], getData: fetchSalesAgents },
   contract: { label: "הסכם חתום", type: "file", options: { multiple: true } },
+
+  salesAgentName: { label: "שם סוכן שטח", type: "text" },
+  salseAgentEmail: { label: "אימייל סוכן שטח", type: "text" },
+  salseAgentID: { label: "תעודת זהות סוכן שטח", type: "text" },
 
   paymentAttached: { label: "צ'קים", type: "file", required: true, options: { multiple: true } },
   clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file", required: true, options: { multiple: true } },
@@ -310,13 +291,20 @@ const formHeaders = {
 
 export const userDoc = writable(null)
 export const prompt = writable(null)
+export const productItems = writable([])
 
 
+
+async function initFetchStore(fetchFunc){
+  const data = await fetchFunc()
+  const { set, subscribe, update } = writable(data)
+  return {subscribe,set,update}
+}
 function initForm(_headers, _docData) {
-
+  
   const docData = { ..._docData }
   const headers = { ..._headers }
-
+  
   const params = (new URL(document.location)).searchParams;
   for (const [k, v] of params) {
     if (headers[k]) {
@@ -330,7 +318,7 @@ function initForm(_headers, _docData) {
     docData,
     headers
   })
-
+  
   return {
     subscribe,
     set,
@@ -351,6 +339,7 @@ function initForm(_headers, _docData) {
   }
 }
 export const formDoc = initForm(formHeaders, initFormData);
+
 
 
 export let formGroups = writable([
@@ -379,7 +368,7 @@ export let formGroups = writable([
     isShrink: true,
     id: "dealData",
     title: "פרטי עסקה",
-    fields: ["package", "productVarietions", "price", "priceIncludeVAT", "contractStartDate", "contractPeriod", "salesMan1", "salesMan2",],
+    fields: ["package", "productVarietions", "price", "priceIncludeVAT", "contractStartDate", "contractPeriod", "feeStartDate", "noOfPayments", "salesMan", "salesAgent",],
   },
   {
     isShrink: true,

@@ -13,21 +13,20 @@
   const app = firebase.initializeApp(firebaseConfig);
   export const auth = firebase.auth(app);
 
+  import { formDoc, formGroups, prompt } from "./stores";
+  import { logout } from "./auth";
+  import { fade } from "svelte/transition";
+  import { formatDateDisplay, getDisplayValue } from "./utils/data";
+  import { onMount } from "svelte";
   import Auth from "./components/Auth.svelte";
   import Login from "./components/Login.svelte";
   import FormGroup from "./components/FormGroup.svelte";
-  import { logout } from "./auth";
-  import { formDoc, formGroups, prompt } from "./stores";
   import Prompt from "./components/Prompt.svelte";
-  import { fade, fly } from "svelte/transition";
   import SignatureInput from "./components/SignatureInput.svelte";
   import ContractTitle from "./components/ContractTitle.svelte";
-  import { formatDateDisplay, getDisplayValue } from "./utils/data";
   import ContractSides from "./components/contractSides/ContractSides.svelte";
-  import { onMount } from "svelte";
   import ContractWhereas from "./components/ContractWhereas.svelte";
   import Subs from "./components/Subs.svelte";
-  import { select_multiple_value } from "svelte/internal";
   import CollapsibleGroup from "./components/CollapsibleGroup.svelte";
   import PaymentsTable from "./components/PaymentsTable.svelte";
   import ContractProducts from "./components/ContractProducts.svelte";
@@ -35,6 +34,8 @@
   $: valid = $formDoc.valid;
   $: errors = $formDoc.errors;
   $: currentAddress = "";
+
+  //form automation
   $: {
     if ($formDoc.docData.price) {
       $formDoc.docData.priceIncludeVAT = parseInt(
@@ -47,11 +48,12 @@
   onMount(() => {
     fetchCurrentLocation();
   });
+
   function fetchCurrentLocation() {
     navigator.geolocation.getCurrentPosition((res) => {
       const apiKey = "tXCWToa7qnKQz1pHe4P8ap3XUQ0kdRt9";
       const { latitude, longitude } = res.coords;
-      const url = `http://www.mapquestapi.com/geocoding/v1/reverse?key=${apiKey}&location=${latitude},${longitude}`;
+      const url = `https://www.mapquestapi.com/geocoding/v1/reverse?key=${apiKey}&location=${latitude},${longitude}`;
       fetch(url)
         .then((res) => res.json())
         .then((data) => {
@@ -90,44 +92,6 @@
       console.error(e);
     }
   }
-  //OLD:
-  // async function handleOnSubmit() {
-  //   const url = "https://hook.integromat.com/95nczekdzhsagsr4s8fypa1e9p9booly";
-  //   const formData = new FormData();
-  //   Object.entries($formDoc.docData).forEach(([header, value]) => {
-  //     const field = $formDoc.headers[header];
-  //     const filesCount = {};
-  //     if (field) {
-  //       switch (field.type) {
-  //         case "file":
-  //           value.forEach((fileObj, ind) => {
-  //             formData.append(`${header}_${ind}`, fileObj.file);
-  //             filesCount[header] = Number(ind) + 1;
-  //           });
-  //           break;
-  //         case "list":
-  //           formData.append(header, value.id || "");
-  //           break;
-  //         default:
-  //           formData.append(header, value);
-  //       }
-  //     } else {
-  //       throw `field ${header} not found`;
-  //     }
-  //   });
-  //   formData.append("filesCount", JSON.stringify(filesCount));
-  //   // console.log($formDoc.docData);
-  //   try {
-  //     const response = await fetch(url, {
-  //       method: "POST",
-  //       body: formData,
-  //       contentType: "multipart/form-data",
-  //     });
-  //     console.log(response.status, response.statusText);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // }
 
   const appendix = {
     1: {
@@ -161,55 +125,9 @@
     },
   ];
 
-  // const products = [
-  //   {
-  //     id: "11",
-  //     active: false,
-  //     category: "1",
-  //     text: "ליווי וניהול שוטף",
-  //     packages: ["1587242441", "1587791621"],
-  //   },
-  //   {
-  //     id: "12",
-  //     active: false,
-  //     category: "1",
-  //     text: "בקרת הנהלה בכירה",
-  //     packages: ["1587242441", "1587791621"],
-  //   },
-  //   {
-  //     id: "21",
-  //     active: false,
-  //     category: "2",
-  //     text: "ניהול תזרים מזומנים",
-  //     packages: ["1587791621"],
-  //   },
-  //   {
-  //     id: "22",
-  //     active: false,
-  //     category: "2",
-  //     text: "בניית מפה כלכלית לעסק",
-  //     packages: ["1587242441", "1587791621"],
-  //   },
-  //   {
-  //     id: "31",
-  //     active: false,
-  //     category: "3",
-  //     text: "ניהול קמפיינים בפייסבוק",
-  //     packages: ["1587242441", "1587791621"],
-  //   },
-  //   {
-  //     id: "32",
-  //     active: false,
-  //     category: "3",
-  //     text: "חיבור למערכת ניהול לידים",
-  //     packages: ["1587242441", "1587791621"],
-  //   },
-  // ];
-
   const categories = [
-    { id: "1", text: "כללי" },
-    { id: "2", text: "פיננסי" },
-    { id: "3", text: "פרסום" },
+    { id: "1", text: "חבילה" },
+    { id: "2", text: "תוספות" },
   ];
 
   const subs = [
@@ -270,7 +188,7 @@
     {
       index: 10,
       editable: true,
-      text: `הצדדים מתחייבים התחייבות הדדית אחד לשני לשמור על סודיות הנתונים המתקבלים אצלם במסגרת התקשרות זו ואף שנתיים בסיומה, מוסכם על הצדדים כי הפרה של סעיף זה הנה הפרה יסודית של הסכם זה המזכה את הצד הנפגע בפיצוי כספי מוסכם המוערך יחד על ידי הצדדים בסך סכום ליווי של שלושה חודשים, מבלי הצורך בניהול הליך משפטי.`,
+      text: `מוסכם על הצדדים כי אי עמידה בתשלום מאפשרים לנותנת השירותים להפסיק את ההתקשרות לאלתר/ לרבות העלאת דרישה לתשלום יתרת התשלום`,
     },
     {
       index: 11,
@@ -293,13 +211,6 @@
       text: "הודעה שתישלח על פי כתובות הצדדים במבוא להסכם זה בדואר רשום, תחשב כאילו הגיעה לצד הנשגר ולידיעתו תוך שלושה (3) ימים מעת שיגורה בדואר רשום מבית דואר בישראל ואם נמסרה ביד-בעת מסירתה, ואם שוגרה באימייל - תוך 24 שעות ממועד שיגורה.",
     },
   ];
-
-  // const DOC_DATA_PATTERN = /#_([a-zA-Z]+)_#/gm;
-  // const INDEX_PATTERN = /&_([\d\.]+)_&/gm;
-  // const replaceDocData = (_, match) =>
-  //   $formDoc.docData[match] ? $formDoc.docData[match] : "____";
-  // const replaceIndex = (_, match) =>
-  //   subs.find(({ index }) => index == match)?.index || "____";
 </script>
 
 <Auth {auth} let:loggedIn let:userDisplayValue>
@@ -335,9 +246,9 @@
         <CollapsibleGroup title="נספח חלוקת תשלומים" isShrink shrinkable>
           <PaymentsTable
             {formDoc}
-            defaultDate={$formDoc.docData.contractStartDate}
+            defaultDate={$formDoc.docData.feeStartDate}
             defaultPrice={$formDoc.docData.priceIncludeVAT}
-            defatultPayments={$formDoc.docData.contractPeriod}
+            defatultPayments={$formDoc.docData.noOfPayments}
           />
         </CollapsibleGroup>
         {#if contractElem}
@@ -372,6 +283,9 @@
             </p>
           </div>
           <ContractSides
+            company={{
+              signers: [{ prefix: "", name: $formDoc.docData.salesAgentName, id: $formDoc.docData.salseAgentID }]
+            }}
             client={{
               name: $formDoc.docData.companyName,
               id: $formDoc.docData.companyNumber,
@@ -397,7 +311,7 @@
           />
           <div class="priceQuote">
             <span>חבילת שירות</span>
-            <div contenteditable>
+            <div>
               {getDisplayValue($formDoc.docData.package, "list", {
                 field: $formDoc.headers.package,
               }) || "_____"}
@@ -432,6 +346,8 @@
               <span>חלון יציאה</span>
               <div contenteditable>כל 3 חודשים</div>
             {/if}
+            <span>הערות</span>
+            <div contenteditable>{$formDoc.docData.notes}</div>
           </div>
           <ContractTitle
             text={appendix[3].text}

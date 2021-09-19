@@ -1,8 +1,13 @@
 <script>
     import Icon from "./Icon.svelte";
     import { fade } from "svelte/transition";
-    import { producstList } from "../stores";
-    export let categories, formDoc;
+    import { producstList, productItems } from "../stores";
+    import { onMount } from "svelte";
+    import { fetchMondayAPI } from "../services/monday";
+    import { reduceColumns } from "../utils/data";
+    export let formDoc;
+
+    let categories = [];
 
     $: {
         if ($formDoc.docData.package) {
@@ -29,10 +34,107 @@
             });
         }
     }
+    async function fetchProductItems() {
+        const dict = {
+            connect_boards: "packages",
+            numbers: "price",
+            long_text: "description",
+            group: "category",
+        };
+        const qry = `{
+            boards(ids:1664213853){
+                groups{
+                    id
+                    title
+                }
+                items{
+                    id
+                    name
+                    group{
+                        title
+                        id
+                    }
+                    column_values(ids:[${Object.keys(dict).toString()}]){
+                    id
+                    type
+                    title
+                    text
+                    value
+                    }
+                }
+            }
+        }`;
+        let data = [];
+        let groups = [];
+        let result = await fetchMondayAPI(qry);
+        if (result && result.boards[0].items.length > 0) {
+            data = result.boards[0].items.map(
+                ({ name, id, group, column_values }) => {
+                    const groupField = {
+                        id: "group",
+                        text: group.title,
+                        value: group.title,
+                    };
+                    return {
+                        text: name,
+                        id,
+                        category: group.id,
+                        active: false,
+                        attributes: reduceColumns({
+                            column_values: [groupField, ...column_values],
+                            dict,
+                        }),
+                    };
+                }
+            );
+        }
+        if (result && result.boards[0].groups.length > 0) {
+            groups = result.boards[0].groups.map(({ title, id }) => ({
+                id,
+                title,
+            }));
+        }
+        return { data, groups };
+    }
+    async function fetchData() {
+        try {
+            const { data, groups } = await fetchProductItems();
+            categories = [...groups];
+            $productItems = [...data];
+            console.log($productItems)
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    onMount(() => {
+        fetchData();
+    });
 </script>
 
 <div class="wrrapper">
     {#each categories as category (category.id)}
+        <h5>{category.title}</h5>
+        {#each $productItems.filter((el) => el.category === category.id) as product, ind (product.id)}
+            <div class="product">
+                <span
+                    transition:fade
+                    class="check"
+                    on:click={() => toggleCheckProduct(product)}
+                >
+                    {#if product.active}
+                        <Icon name="icon-check" />
+                    {:else}
+                        -
+                    {/if}
+                </span>
+                <span transition:fade class:active={product.active}>
+                    {product.text}
+                </span>
+            </div>
+        {/each}
+    {/each}
+    <!-- {#each categories as category (category.id)}
         <h5>{category.text}</h5>
         {#each $producstList.filter((el) => el.category === category.id) as product, ind (product.id)}
             <div class="product">
@@ -52,7 +154,7 @@
                 >
             </div>
         {/each}
-    {/each}
+    {/each} -->
 </div>
 
 <style>

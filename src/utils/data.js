@@ -114,3 +114,13 @@ export function formatDateDisplay(date, options = {}) {
     }
     return output;
 }
+
+export const reduceColumns = ({ column_values = [], key = "id", dict = {} } = {}) => {
+    return column_values.reduce((acc, curr) => {
+      let field = curr[key]
+      if (dict && dict[curr[key]]) {
+        field = dict[curr[key]]
+      }
+      return { ...acc, [field]: curr }
+    }, {})
+  }

@@ -12,7 +12,7 @@
     let error = "";
     $: search = "";
     let listOpen = false;
-    $: displayValue = "";
+    $: displayValue = [];
     $: list = [];
     $: {
         if ($formDoc.headers[header].options) {
@@ -27,15 +27,14 @@
         displayValue = showDisplayValue();
     }
     const showDisplayValue = () => {
-        let value = "";
+        let value = [];
         if ($formDoc.docData[header]) {
             const field = $formDoc.headers[header];
             const options = field.options;
             if (field && options && Array.isArray(options)) {
                 value = options
                     .filter((el) => el.id === $formDoc.docData[header])
-                    .map((el) => el.text)
-                    .join(",");
+                    .map((el) => el.text);
             }
         }
         return value;
@@ -43,7 +42,7 @@
     const closeList = () => (listOpen = false);
 
     const handleChangeList = (elemID) => {
-        $formDoc.docData[header] = elemID;
+        $formDoc.docData[header] = [elemID, ...$formDoc.docData[header]];
         // displayValue = showDisplayValue();
         closeList();
 
