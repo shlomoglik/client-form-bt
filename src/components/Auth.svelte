@@ -1,7 +1,11 @@
 <!-- Auth.svelte -->
 <script>
   import { userDoc } from "../stores";
-  export let auth
+  import { useLocation, useNavigate } from "svelte-navigator";
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  export let auth;
   let userDisplayValue = "...";
   $: {
     if ($userDoc && $userDoc.email) {
@@ -9,7 +13,6 @@
     } else userDisplayValue = "...";
   }
   $: loggedIn = $userDoc !== null;
-
 
   // will be fired every time auth state changes
   auth.onAuthStateChanged((fbUser) => {
@@ -21,14 +24,12 @@
         phoneNumber: fbUser.phoneNumber,
         photoURL: fbUser.photoURL,
       };
+      const from = ($location.state && $location.state.from) || "/";
+      navigate(from, { replace: true });
     }
   });
-
 </script>
 
 <div>
-  <slot
-    {loggedIn}
-    {userDisplayValue}
-  />
+  <slot {loggedIn} {userDisplayValue} />
 </div>

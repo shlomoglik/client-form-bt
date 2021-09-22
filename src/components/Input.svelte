@@ -4,7 +4,7 @@
     import LongTextInput from "./LongTextInput.svelte";
     import NumberInput from "./NumberInput.svelte";
     import SelectInput from "./SelectInput.svelte";
-import SelectMultiple from "./SelectMultiple.svelte";
+    import SelectMultiple from "./SelectMultiple.svelte";
     import SignatureInput from "./SignatureInput.svelte";
     import TextInput from "./TextInput.svelte";
     export let formDoc;

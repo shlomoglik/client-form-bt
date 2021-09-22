@@ -50,7 +50,7 @@
     $: payments = $formDoc.docData.payments;
     const createPaymentsTable = () => {
         $formDoc.docData.payments = [];
-        priceData.docData.price = defaultPrice;
+        priceData.docData.price = (totalDeal / defatultPayments) || defaultPrice
         priceData.docData.date = defaultDate;
 
         let lastDate = new Date(priceData.docData.date);

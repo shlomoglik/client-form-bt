@@ -1,7 +1,7 @@
 <script>
     import Icon from "./Icon.svelte";
     import { fade } from "svelte/transition";
-    import { producstList, productItems } from "../stores";
+    import { productItems } from "../stores";
     import { onMount } from "svelte";
     import { fetchMondayAPI } from "../services/monday";
     import { reduceColumns } from "../utils/data";
@@ -16,21 +16,20 @@
     }
 
     const toggleCheckProduct = (product) => {
-        const findIndex = $producstList.findIndex((el) => el.id === product.id);
-        if (findIndex > -1) {
-            $producstList[findIndex] = { ...product, active: !product.active };
+        const findIndex = $productItems.findIndex((el) => el.id === product.id);
+        if (findIndex > -1 && product.text.startsWith("*")) {
+            $productItems[findIndex] = { ...product, active: !product.active };
         }
     };
     function setCurrentPackege() {
         const currentPackage = $formDoc.docData.package;
         if (currentPackage) {
-            $producstList.forEach((product, ind) => {
+            $productItems.forEach((product, ind) => {
                 if (
-                    Array.isArray(product.packages) &&
-                    product.packages.includes(currentPackage)
+                    product?.attributes?.packages?.value?.includes(currentPackage)
                 ) {
-                    $producstList[ind] = { ...product, active: true };
-                } else $producstList[ind] = { ...product, active: false };
+                    $productItems[ind] = { ...product, active: true };
+                } else $productItems[ind] = { ...product, active: false };
             });
         }
     }
@@ -55,35 +54,40 @@
                         id
                     }
                     column_values(ids:[${Object.keys(dict).toString()}]){
-                    id
-                    type
-                    title
-                    text
-                    value
+                        id
+                        type
+                        title
+                        text
+                        value
                     }
                 }
             }
         }`;
         let data = [];
         let groups = [];
+        const currentPackage = $formDoc.docData.package;
         let result = await fetchMondayAPI(qry);
         if (result && result.boards[0].items.length > 0) {
             data = result.boards[0].items.map(
-                ({ name, id, group, column_values }) => {
+                ({ name, id, group, column_values = [] }) => {
                     const groupField = {
                         id: "group",
                         text: group.title,
                         value: group.title,
                     };
+                    const attributes = reduceColumns({
+                        column_values: [groupField, ...column_values],
+                        dict,
+                    });
+                    const active =
+                        currentPackage &&
+                        attributes?.packages?.value?.includes(currentPackage);
                     return {
                         text: name,
                         id,
                         category: group.id,
-                        active: false,
-                        attributes: reduceColumns({
-                            column_values: [groupField, ...column_values],
-                            dict,
-                        }),
+                        active,
+                        attributes,
                     };
                 }
             );
@@ -101,7 +105,6 @@
             const { data, groups } = await fetchProductItems();
             categories = [...groups];
             $productItems = [...data];
-            console.log($productItems)
         } catch (err) {
             console.error(err);
         }
@@ -134,27 +137,6 @@
             </div>
         {/each}
     {/each}
-    <!-- {#each categories as category (category.id)}
-        <h5>{category.text}</h5>
-        {#each $producstList.filter((el) => el.category === category.id) as product, ind (product.id)}
-            <div class="product">
-                <span
-                    transition:fade
-                    class="check"
-                    on:click={() => toggleCheckProduct(product)}
-                >
-                    {#if product.active}
-                        <Icon name="icon-check" />
-                    {:else}
-                        -
-                    {/if}
-                </span>
-                <span transition:fade class:active={product.active}
-                    >{product.text}</span
-                >
-            </div>
-        {/each}
-    {/each} -->
 </div>
 
 <style>

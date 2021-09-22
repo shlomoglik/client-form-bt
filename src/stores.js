@@ -144,38 +144,6 @@ async function fetchAddressList() {
   return []
 }
 
-
-export const producstList = writable([
-  {
-    id: "11",
-    active: false,
-    category: "1",
-    text: "ליווי וניהול שוטף",
-    packages: ["1587242441", "1587791621"],
-  },
-  {
-    id: "12",
-    active: false,
-    category: "1",
-    text: "בקרת הנהלה בכירה",
-    packages: ["1587242441", "1587791621"],
-  },
-  {
-    id: "21",
-    active: false,
-    category: "2",
-    text: "ניהול תזרים מזומנים",
-    packages: ["1587791621"],
-  },
-  {
-    id: "22",
-    active: false,
-    category: "2",
-    text: "בניית מפה כלכלית לעסק",
-    packages: ["1587242441", "1587791621"],
-  },
-])
-
 const initFormData = {
   clientName: "",
   clientNumber: "",
@@ -209,7 +177,9 @@ const initFormData = {
   price: 0,
   priceIncludeVAT: 0,
   contractStartDate: "",
-  retainerOrDeal: ""
+  retainerOrDeal: "",
+  groupCompanyName: "",
+  groupCompanyNumber: "",
 }
 const formHeaders = {
   clientName: { label: "שם הלקוח", required: true },
@@ -244,6 +214,14 @@ const formHeaders = {
       })
     }
   },
+  groupCompanyName: {
+    type: "list", label: "הסכם מול חברה", required: true,
+    options: [
+      { id: "א.א.י.נ. ביזנס טיים בעמ", text: "א.א.י.נ. ביזנס טיים בעמ", attributes: { groupCompanyNumber: { id: "1", type: "text", text: "515988376" } } },
+      { id: "ביריל טיוי בעמ", text: "ביריל טיוי בעמ", attributes: { groupCompanyNumber: { id: "2", type: "text", text: "" } } },
+    ]
+  },
+  groupCompanyNumber: { type: "text" },
   companyType: {
     label: "סוג עוסק", type: "list", options: [
       { text: "עוסק פטור", id: "עוסק פטור" },
@@ -295,16 +273,16 @@ export const productItems = writable([])
 
 
 
-async function initFetchStore(fetchFunc){
+async function initFetchStore(fetchFunc) {
   const data = await fetchFunc()
   const { set, subscribe, update } = writable(data)
-  return {subscribe,set,update}
+  return { subscribe, set, update }
 }
 function initForm(_headers, _docData) {
-  
+
   const docData = { ..._docData }
   const headers = { ..._headers }
-  
+
   const params = (new URL(document.location)).searchParams;
   for (const [k, v] of params) {
     if (headers[k]) {
@@ -318,7 +296,7 @@ function initForm(_headers, _docData) {
     docData,
     headers
   })
-  
+
   return {
     subscribe,
     set,

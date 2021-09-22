@@ -175,7 +175,7 @@
     };
 </script>
 
-<div class="input">
+<div class="input" data-error={!valid}>
     {#if !valid}
         <Icon name="icon-warning" onClick={showError} />
     {/if}
