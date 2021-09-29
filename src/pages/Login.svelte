@@ -38,3 +38,12 @@
   <button on:click={loginHandler}>התחבר</button
   >
 </form>
+
+<style>
+  form{
+    display: grid;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+  }
+</style>

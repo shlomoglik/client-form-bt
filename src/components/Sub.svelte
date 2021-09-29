@@ -10,7 +10,7 @@
     const replaceDocData = (_, match) =>
         $formDoc.docData[match] ? $formDoc.docData[match] : "____";
     const replaceIndex = (_, match) =>
-        subs.find(({ index }) => index == match)?.index || "____";
+        subs.find(({ id }) => id == match)?.index || "____";
 
     $: text = textReplace();
 

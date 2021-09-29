@@ -19,10 +19,11 @@
   import { logout } from "./auth";
   import { userDoc } from "./stores";
   import Auth from "./components/Auth.svelte";
-  import Login from "./components/Login.svelte";
-  import ClientForm from "./components/ClientForm.svelte";
   import Prompt from "./components/Prompt.svelte";
-  import EditContract from "./components/EditContract.svelte";
+  import EditContract from "./pages/EditContract.svelte";
+  import FinishAdd from "./pages/FinishAdd.svelte";
+  import Login from "./pages/Login.svelte";
+  import ClientForm from "./pages/ClientForm.svelte";
 </script>
 
 <Router>
@@ -37,6 +38,9 @@
             <Link to="/edit-contract"
               ><span class="nav-link">עריכת מבנה חוזה</span></Link
             >
+            <Link to="/finish-add"
+              ><span class="nav-link">סיום הוספת לקוח</span></Link
+            >
           {/if}
           <span class="nav-link" on:click={logout}>התנתק</span>
         {/if}
@@ -45,6 +49,7 @@
       {#if loggedIn}
         <Route path="/" component={ClientForm} />
         <Route path="/edit-contract" component={EditContract} />
+        <Route path="/finish-add" component={FinishAdd} />
       {:else}
         <Login />
       {/if}
@@ -58,6 +63,8 @@
     margin: 0 auto;
     display: grid;
     min-height: 100vh;
+    grid-template-rows: min-content 1fr;
+    align-items: center;
   }
 
   .nav-link {
@@ -99,3 +106,5 @@
     }
   }
 </style>
+
+

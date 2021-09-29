@@ -4,7 +4,7 @@
 </script>
 
 <ol class="subs">
-    {#each subs as sub}
+    {#each subs.filter((el) => !el.groupCompany || el.groupCompany === $formDoc.docData.groupCompany) as sub (sub.id)}
         <Sub {formDoc} {subs} {sub} />
     {/each}
 </ol>

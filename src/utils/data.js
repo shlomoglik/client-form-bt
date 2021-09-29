@@ -12,7 +12,7 @@ export const objType = obj => Object.prototype.toString.call(obj);
 export const isString = input => objType(input) === O_STRING
 export const isObject = input => objType(input) === O_OBJECT
 
-export const addMonths = (monthsToAdd=0, d = new Date()) => new Date(d.getFullYear(), d.getMonth() + parseInt(monthsToAdd), d.getDate());
+export const addMonths = (monthsToAdd = 0, d = new Date()) => new Date(d.getFullYear(), d.getMonth() + parseInt(monthsToAdd), d.getDate());
 
 
 export function getDisplayValue(value, type, settings = {}) {
@@ -117,10 +117,18 @@ export function formatDateDisplay(date, options = {}) {
 
 export const reduceColumns = ({ column_values = [], key = "id", dict = {} } = {}) => {
     return column_values.reduce((acc, curr) => {
-      let field = curr[key]
-      if (dict && dict[curr[key]]) {
-        field = dict[curr[key]]
-      }
-      return { ...acc, [field]: curr }
+        let field = curr[key]
+        if (dict && dict[curr[key]]) {
+            field = dict[curr[key]]
+        }
+        return { ...acc, [field]: curr }
     }, {})
-  }
+}
+
+export function getCssText() {
+    for (let i = 0; i < window.document.styleSheets.length; i++) {
+        for (let j = 0; j < window.document.styleSheets[i].cssRules.length; j++) {
+            console.log(window.document.styleSheets[i].cssRules[j].cssText)
+        }
+    }
+}

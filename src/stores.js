@@ -1,5 +1,5 @@
 import { writable } from "svelte/store";
-import { areasMap } from "./areas";
+import { areasMap } from "./constants/areas";
 import { reduceColumns } from "./utils/data";
 import { fetchMondayAPI } from "./services/monday";
 
@@ -178,6 +178,7 @@ const initFormData = {
   priceIncludeVAT: 0,
   contractStartDate: "",
   retainerOrDeal: "",
+  groupCompany: "",
   groupCompanyName: "",
   groupCompanyNumber: "",
 }
@@ -217,8 +218,8 @@ const formHeaders = {
   groupCompanyName: {
     type: "list", label: "הסכם מול חברה", required: true,
     options: [
-      { id: "א.א.י.נ. ביזנס טיים בעמ", text: "א.א.י.נ. ביזנס טיים בעמ", attributes: { groupCompanyNumber: { id: "1", type: "text", text: "515988376" } } },
-      { id: "ביריל טיוי בעמ", text: "ביריל טיוי בעמ", attributes: { groupCompanyNumber: { id: "2", type: "text", text: "" } } },
+      { id: "א.א.י.נ. ביזנס טיים בעמ", text: "א.א.י.נ. ביזנס טיים בעמ", attributes: { groupCompanyNumber: { id: "1", type: "text", text: "515988376" }, groupCompany: { id: "1", type: "text", text: "A" } } },
+      { id: "ביריל טיוי בעמ", text: "ביריל טיוי בעמ", attributes: { groupCompanyNumber: { id: "2", type: "text", text: "516372216" }, groupCompany: { id: "1", type: "text", text: "B" } } },
     ]
   },
   groupCompanyNumber: { type: "text" },
@@ -239,7 +240,7 @@ const formHeaders = {
   anohterEmail: { label: "אימייל נוסף", depend: { email: "EXIST" } },
 
   package: { label: "חבילה", type: "list", options: [], getData: fetchProductsList, reset: ["productVarietions"] },
-  contractPeriod: { label: "תקופת ההתקשרות בחודשים", type: "number" },
+  contractPeriod: { label: "תקופת ההתקשרות בחודשים", type: "number"  , depend:{groupCompany:"A"}},
   contractStartDate: { label: "תאריך תחילת ההתקשרות", type: "date" },
   feeStartDate: { label: "תאריך תשלום ראשון", type: "date" },
   noOfPayments: { label: "חלוקה למספר תשלומים", type: "number" },

@@ -12,13 +12,12 @@
         formDoc,
         dataOptions = {};
 
+    $: load = 0;
     let valid = true;
     let error = "";
-    let loader = false;
     let fileInput;
     let files;
     let attachments = [];
-
 
     onMount(() => {
         validateField();
@@ -49,7 +48,11 @@
             const field = $formDoc.headers[header];
             if (field && field.required) {
                 let isEmpty = false;
-                if ((field.type === "file"||field.type==="list_multiple") && value.length === 0) isEmpty = true;
+                if (
+                    (field.type === "file" || field.type === "list_multiple" || field.type === "signature") &&
+                    value.length === 0
+                )
+                    isEmpty = true;
                 else if (value === "") isEmpty = true;
                 if (isEmpty) {
                     $formDoc.errors.push({
@@ -101,12 +104,14 @@
                 const progress =
                     (_snap.bytesTransferred / _snap.totalBytes) * 100;
                 console.log("Upload is " + progress + "% done");
+                load = parseInt(progress);
             };
             const error = (_error) => {
                 console.error("error on file upload: ", _error);
             };
             const complete = async () => {
                 try {
+                    load = 0
                     const url = await task.snapshot.ref.getDownloadURL();
                     const docData = Object.assign(
                         {
@@ -183,6 +188,9 @@
     <label for={header}>
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>
+    {#if load}
+        <div>loading {load}%</div>
+    {/if}
     <input
         bind:this={fileInput}
         type="file"

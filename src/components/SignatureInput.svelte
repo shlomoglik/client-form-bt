@@ -1,25 +1,23 @@
 <script>
-    import { onMount } from "svelte";
     import firebase from "firebase/app";
     import "firebase/storage";
-    import FileThumb from "./FileThumb.svelte";
+    import { onMount } from "svelte";
     import { fade } from "svelte/transition";
     import { uuid } from "../utils/data";
-    import Icon from "./Icon.svelte";
     import { prompt } from "../stores";
-    import Prompt from "./Prompt.svelte";
-    import { assign } from "svelte/internal";
+    import FileThumb from "./FileThumb.svelte";
+    import Icon from "./Icon.svelte";
 
     export let header,
         formDoc,
         dataOptions = {};
 
     let valid = true;
+    let error = "";
     let attachments = [];
 
     let showPanel = true;
     let canvas;
-    let globalWindow;
     let clickX = [];
     let clickY = [];
     let clickDrag = [];
@@ -48,8 +46,15 @@
             const field = $formDoc.headers[header];
             if (field && field.required) {
                 let isEmpty = false;
-                if ((field.type === "file"||field.type==="list_multiple") && value.length === 0) isEmpty = true;
+                if (
+                    (field.type === "file" ||
+                        field.type === "list_multiple" ||
+                        field.type === "signature") &&
+                    value.length === 0
+                )
+                    isEmpty = true;
                 else if (value === "") isEmpty = true;
+
                 if (isEmpty) {
                     $formDoc.errors.push({
                         header,
@@ -116,13 +121,16 @@
 
     function saveSignature() {
         if (isCanvasBlank()) return alert("לא ניתן לשמור חתימה ריקה");
-        canvas.toBlob(function (blob) {
-            Promise.resolve(handleAddFile(blob)).then(() => {
+        try {
+            canvas.toBlob(async blob=>{
+                await Promise.resolve(handleAddFile(blob));
                 clearCanvas();
                 validate();
                 showPanel = false;
-            });
-        });
+            })
+        } catch (err) {
+            console.error(err);
+        }
     }
     async function handleRemoveFile(id) {
         try {
@@ -227,10 +235,7 @@
     }
 </script>
 
-<div class="input" data-error={!valid}>
-    {#if !valid}
-        <Icon name="icon-warning" onClick={showError} />
-    {/if}
+<div class="input">
     <label for={header}>
         {$formDoc.headers[header] ? $formDoc.headers[header].label : ""}
     </label>

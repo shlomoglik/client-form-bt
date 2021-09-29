@@ -135,7 +135,7 @@
             const field = $formDoc.headers[header];
             if (field && field.required) {
                 let isEmpty = false;
-                if ((field.type === "file"||field.type==="list_multiple") && value.length === 0) isEmpty = true;
+                if ((field.type === "file"||field.type==="list_multiple" || field.type==="signature") && value.length === 0) isEmpty = true;
                 else if (value === "") isEmpty = true;
                 if (isEmpty) {
                     $formDoc.errors.push({

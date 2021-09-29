@@ -28,10 +28,13 @@
 </div>
 
 <style>
+    iframe,img {
+        max-width: 100%;
+    }
     img {
         object-fit: contain;
-        height: 350px;
-        width: 350px;
+        height: 320px;
+        width: 320px;
     }
     .file-thumb {
         padding: 15px 15px;

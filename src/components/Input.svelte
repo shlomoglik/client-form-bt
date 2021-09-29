@@ -1,4 +1,7 @@
 <script>
+    import { objType } from "../utils/data";
+    import { O_ARRAY } from "../utils/objTypes";
+
     import DateInput from "./DateInput.svelte";
     import FileInput from "./FileInput.svelte";
     import LongTextInput from "./LongTextInput.svelte";
@@ -16,6 +19,7 @@
                 ([depKey, depValue]) => {
                     if (depValue === "EXIST")
                         show = $formDoc.docData[depKey] ? true : false;
+                    else show = $formDoc.docData[depKey] == depValue;
                 }
             );
         }
