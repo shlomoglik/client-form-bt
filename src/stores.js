@@ -210,7 +210,8 @@ const formHeaders = {
     filter: (list = [], formData = {}) => {
       if (!formData.area) return list
       return list.filter(el => {
-        const { area_id = "" } = areasMap[el['סמל_נפה'].trim()] || {}
+        const currentAreaID = el['סמל_נפה'].trim()
+        const { area_id = "" } = areasMap[currentAreaID] || {}
         return area_id ? area_id == formData.area : true
       })
     }
@@ -240,7 +241,7 @@ const formHeaders = {
   anohterEmail: { label: "אימייל נוסף", depend: { email: "EXIST" } },
 
   package: { label: "חבילה", type: "list", options: [], getData: fetchProductsList, reset: ["productVarietions"] },
-  contractPeriod: { label: "תקופת ההתקשרות בחודשים", type: "number"  , depend:{groupCompany:"A"}},
+  contractPeriod: { label: "תקופת ההתקשרות בחודשים", type: "number", depend: { groupCompany: "A" } },
   contractStartDate: { label: "תאריך תחילת ההתקשרות", type: "date" },
   feeStartDate: { label: "תאריך תשלום ראשון", type: "date" },
   noOfPayments: { label: "חלוקה למספר תשלומים", type: "number" },

@@ -327,6 +327,8 @@
       defaultDate={$formDoc.docData.feeStartDate}
       defaultPrice={$formDoc.docData.priceIncludeVAT}
       defatultPayments={$formDoc.docData.noOfPayments}
+      serviceStartDate={$formDoc.docData.contractStartDate}
+      servicePeriod={$formDoc.docData.contractPeriod}
     />
   </CollapsibleGroup>
   {#if contractElem}

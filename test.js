@@ -1,7 +1,8 @@
-const store = {
-    contractPeriod:12,
+const addDays = (daysToAdd, d = new Date()) => {
+    const newDate = new Date(d);
+    newDate.setTime(d.getTime() + (parseInt(daysToAdd) * 24 * 3600 * 1000));
+    return newDate;
 }
-const text = "משך ההסכם הינו ל#_contractPeriod_# חודשים  (קרי, כ #_contractPeriod_# תשלומים חודשיים),"
-
-const newText = text.replace(/#_([a-zA-Z]+)_#/g,(_,match)=>store[match]);
-console.log(newText)
+console.log(addDays(2))
+console.log(addDays(3))
+console.log(addDays(-1))

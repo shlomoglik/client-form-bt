@@ -1,5 +1,6 @@
 <script>
     import {
+        addDays,
         addMonths,
         formatDateDisplay,
         getDisplayValue,
@@ -11,6 +12,10 @@
     export let defaultDate = formatDateDisplay(new Date(), {
         outputFormat: "yyyy-MM-dd",
     });
+    export let serviceStartDate = formatDateDisplay(new Date(), {
+        outputFormat: "yyyy-MM-dd",
+    });
+    export let servicePeriod = 12;
     export let defatultPayments = 12;
 
     $: totalDeal =
@@ -22,9 +27,13 @@
             date: defaultDate,
             paymentType: "check",
             received: "true",
+            fromDate: "",
+            toDate: "",
         },
         headers: {
             price: { type: "number", label: "סכום" },
+            fromDate: { type: "date", label: "כיסוי תקופת שירות - התחלה" },
+            toDate: { type: "date", label: "כיסוי תקופת שירות - סיום" },
             date: { type: "date", label: "תאריך פירעון" },
             paymentType: {
                 type: "list",
@@ -50,15 +59,34 @@
     $: payments = $formDoc.docData.payments;
     const createPaymentsTable = () => {
         $formDoc.docData.payments = [];
-        priceData.docData.price = (totalDeal / defatultPayments) || defaultPrice
+        priceData.docData.price = totalDeal / defatultPayments || defaultPrice;
         priceData.docData.date = defaultDate;
+        priceData.docData.fromDate = serviceStartDate;
 
-        let lastDate = new Date(priceData.docData.date);
+        let payDate = new Date(priceData.docData.date);
+        let sDate = new Date(serviceStartDate);
+        const monthsIncludeInPayment = servicePeriod / defatultPayments;
+        let eDate = addDays(-1, addMonths(monthsIncludeInPayment, sDate));
+        priceData.docData.fromDate = formatDateDisplay(sDate, {
+            outputFormat: "yyyy-MM-dd",
+        });
+        priceData.docData.toDate = formatDateDisplay(eDate, {
+            outputFormat: "yyyy-MM-dd",
+        });
+
         for (let i = 0; i < defatultPayments; i++) {
             const currentPayment = Object.assign({}, priceData.docData);
             if (i > 0 && priceData.docData.date) {
-                lastDate = addMonths(1, lastDate);
-                currentPayment.date = formatDateDisplay(lastDate, {
+                payDate = addMonths(monthsIncludeInPayment, payDate);
+                sDate = addMonths(monthsIncludeInPayment, sDate);
+                eDate = addDays(-1, addMonths(monthsIncludeInPayment, sDate));
+                currentPayment.date = formatDateDisplay(payDate, {
+                    outputFormat: "yyyy-MM-dd",
+                });
+                currentPayment.fromDate = formatDateDisplay(sDate, {
+                    outputFormat: "yyyy-MM-dd",
+                });
+                currentPayment.toDate = formatDateDisplay(eDate, {
                     outputFormat: "yyyy-MM-dd",
                 });
             }
@@ -66,20 +94,35 @@
         }
     };
     const handleAddPayment = () => {
-        let lastDate = new Date(
-            payments.reduce(
-                (acc, curr) => Math.max(acc, new Date(curr.date)),
-                +new Date()
+        const lastPayment = payments.reduce((prev, next) =>
+            next.docData.date > prev.docData.date ? next : prev
+        );
+        let payDate = new Date(lastPayment.docData.date);
+        payDate = addMonths(monthsIncludeInPayment, payDate);
+        let sDate = new Date(lastPayment.docData.sDate);
+        const monthsIncludeInPayment = servicePeriod / defatultPayments;
+        let eDate = addDays(
+            -1,
+            addMonths(
+                monthsIncludeInPayment,
+                new Date(lastPayment.docData.eDate)
             )
         );
-        lastDate = addMonths(1, lastDate);
+
         const currentPayment = Object.assign({}, priceData.docData);
         currentPayment.id = payments.length;
-        currentPayment.date = formatDateDisplay(lastDate, {
+        currentPayment.date = formatDateDisplay(payDate, {
+            outputFormat: "yyyy-MM-dd",
+        });
+        currentPayment.fromDate = formatDateDisplay(sDate, {
+            outputFormat: "yyyy-MM-dd",
+        });
+        currentPayment.toDate = formatDateDisplay(eDate, {
             outputFormat: "yyyy-MM-dd",
         });
         $formDoc.docData.payments = [...payments, currentPayment];
     };
+
     const handleRemovePayment = (index) => {
         if (payments.length > 1) {
             $formDoc.docData.payments = $formDoc.docData.payments.filter(
@@ -87,7 +130,6 @@
             );
         }
     };
-    
 </script>
 
 <div class="wrrapper">
@@ -139,6 +181,20 @@
                         class="input__field"
                         type="number"
                         bind:value={payment.price}
+                    />
+                </div>
+                <div class="input">
+                    <input
+                        class="input__field"
+                        type="date"
+                        bind:value={payment.fromDate}
+                    />
+                </div>
+                <div class="input">
+                    <input
+                        class="input__field"
+                        type="date"
+                        bind:value={payment.toDate}
                     />
                 </div>
                 <div class="input">

@@ -12,6 +12,11 @@ export const objType = obj => Object.prototype.toString.call(obj);
 export const isString = input => objType(input) === O_STRING
 export const isObject = input => objType(input) === O_OBJECT
 
+export const addDays = (daysToAdd, d = new Date()) => {
+    const newDate = new Date(d);
+    newDate.setTime(d.getTime() + (parseInt(daysToAdd) * 24 * 3600 * 1000));
+    return newDate;
+}
 export const addMonths = (monthsToAdd = 0, d = new Date()) => new Date(d.getFullYear(), d.getMonth() + parseInt(monthsToAdd), d.getDate());
 
 

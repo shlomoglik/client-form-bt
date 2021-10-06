@@ -86,12 +86,12 @@ export const areasMap = {
     },
     "61": {
         "region": "אשקלון",
-        "area_id": "west",
+        "area_id": "south",
         "area": "דרום"
     },
     "62": {
         "region": "באר שבע",
-        "area_id": "west",
+        "area_id": "south",
         "area": "דרום"
     },
     "71": {
@@ -126,7 +126,7 @@ export const areasMap = {
     },
     "77": {
         "region": "חברון",
-        "area_id": "west",
+        "area_id": "south",
         "area": "דרום"
     }
 }
