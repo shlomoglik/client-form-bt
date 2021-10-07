@@ -1,6 +1,6 @@
-import { writable } from "svelte/store";
+import { readable, writable } from "svelte/store";
 import { areasMap } from "./constants/areas";
-import { reduceColumns } from "./utils/data";
+import { reduceColumns, uuid } from "./utils/data";
 import { fetchMondayAPI } from "./services/monday";
 
 
@@ -318,10 +318,9 @@ function initForm(_headers, _docData) {
     reset: () => set({ docData: { ...initFormData }, errors: [], valid: false, headers }),
   }
 }
+
+export const formDocID = writable(uuid())
 export const formDoc = initForm(formHeaders, initFormData);
-
-
-
 export let formGroups = writable([
   {
     isShrink: false,

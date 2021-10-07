@@ -1,5 +1,5 @@
 <script>
-  import {loginWithEmailPassword} from "../auth" 
+  import {loginWithEmailPassword} from "../services/auth" 
   let email, password;
 
   let error = "";

@@ -68,6 +68,6 @@ import Icon from "./Icon.svelte";
         bind:value={$formDoc.docData[header]}
         placeholder={$formDoc.headers[header].placeholder || "---"}
         on:blur={validate}
-        required={$formDoc.docData[header].required}
+        required={$formDoc.docData[header] && $formDoc.docData[header].required}
     />
 </div>

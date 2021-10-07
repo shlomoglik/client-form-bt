@@ -172,7 +172,7 @@
                 .join(" ")} max-content`}
         >
             {#each Object.entries(priceData.headers) as [headerKey, header] (headerKey)}
-                <div>{header.label}</div>
+                <div class="tableHeader">{header.label}</div>
             {/each}
             <div>&nbsp;</div>
             {#each payments as payment, index}
@@ -250,6 +250,11 @@
     }
     .payments {
         display: grid;
+        max-width: 100vw;
+        overflow-x: scroll;
+        padding: 5px;
+        background: #fafafa;
+        padding-top: 15px;
     }
     .input {
         justify-content: stretch;

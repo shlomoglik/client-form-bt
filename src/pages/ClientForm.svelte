@@ -1,8 +1,9 @@
 <script>
+  import { db } from "../services/firestore";
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { formatDateDisplay, getDisplayValue } from "../utils/data";
-  import { formDoc, formGroups, prompt } from "../stores";
+  import { formDoc, formDocID, formGroups, prompt } from "../stores";
   import FormGroup from "../components/FormGroup.svelte";
   import SignatureInput from "../components/SignatureInput.svelte";
   import ContractTitle from "../components/ContractTitle.svelte";
@@ -13,13 +14,15 @@
   import PaymentsTable from "../components/PaymentsTable.svelte";
   import ContractProducts from "../components/ContractProducts.svelte";
   import Input from "../components/Input.svelte";
-  import { useNavigate } from "svelte-navigator";
+  import { useNavigate, useLocation } from "svelte-navigator";
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   $: valid = $formDoc.valid;
   $: errors = $formDoc.errors;
   $: currentAddress = "";
+  $: savingDraft = false;
 
   //form automation
   $: {
@@ -61,7 +64,34 @@
     $formDoc.errors = errors.filter((el) => el !== item);
   }
 
+  async function saveDraft() {
+    try {
+      savingDraft = true;
+      const formPath = `/drafts/${$formDocID}`;
+      const dataToSave = Object.assign({}, $formDoc.docData);
+      Object.entries(dataToSave).forEach(([header, value]) => {
+        if (
+          $formDoc.headers[header] &&
+          $formDoc.headers[header].type === "file"
+        ) {
+          value.forEach((el, ind) => {
+            dataToSave[header] = Object.assign(el, { file: "" });
+          });
+        }
+      });
+      await db.doc(formPath).set($formDoc.docData, { merge: true });
+      savingDraft = false;
+      if ($location.pathname !== formPath) {
+        navigate(formPath);
+      }
+    } catch (err) {
+      savingDraft = false;
+      console.error(err);
+    }
+  }
+
   async function handleOnSubmit() {
+    if (!valid) return;
     try {
       const url =
         "https://hook.integromat.com/95nczekdzhsagsr4s8fypa1e9p9booly";
@@ -448,11 +478,12 @@
     <Subs {subs} {formDoc} />
     <SignatureInput header="clientSignature" {formDoc} />
   </div>
-  {#if valid}
-    <button type="button" on:click={handleOnSubmit} data-disabled={!valid}>
-      בצע הזמנת עבודה
-    </button>
-  {/if}
+  <button type="button" on:click={handleOnSubmit} data-disabled={!valid}>
+    בצע הזמנת עבודה
+  </button>
+  <button type="button" on:click={saveDraft} data-disabled={savingDraft}>
+    שמור טיוטה
+  </button>
 </section>
 
 <style>

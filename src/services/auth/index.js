@@ -1,11 +1,13 @@
 // auth/index.js
-import firebase from 'firebase/app';
+import * as firebase from 'firebase'
+
+export const auth = firebase.default.auth()
 
 export const loginWithEmailPassword = (email, password) =>
-  firebase.auth().signInWithEmailAndPassword(email, password);
+  auth.signInWithEmailAndPassword(email, password);
 
 export const loginWithGoogle = (useRedirect = false) => {
-  const provider = new firebase.auth.GoogleAuthProvider();
+  const provider = new auth.GoogleAuthProvider();
   if (useRedirect) {
     return auth.signInWithRedirect(provider);
   } else {
@@ -13,4 +15,5 @@ export const loginWithGoogle = (useRedirect = false) => {
   }
 };
 
-export const logout = () => firebase.auth().signOut();
+export const logout = () => auth.signOut();
+

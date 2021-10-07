@@ -67,6 +67,6 @@
         id={header}
         bind:value={$formDoc.docData[header]}
         on:blur={validate}
-        required={$formDoc.docData[header].required}
+        required={ $formDoc.docData[header] && $formDoc.docData[header].required}
     />
 </div>

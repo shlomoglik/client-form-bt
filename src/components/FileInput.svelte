@@ -17,7 +17,7 @@
     let error = "";
     let fileInput;
     let files;
-    let attachments = [];
+    let attachments = $formDoc.docData[header];
 
     onMount(() => {
         validateField();
@@ -200,7 +200,7 @@
         bind:files
         multiple
         onChange={handleFileChange}
-        required={$formDoc.docData[header].required}
+        required={$formDoc.docData[header] && $formDoc.docData[header].required}
     />
     <div class="input-files input__field" on:click={() => fileInput.click()}>
         {#if files && files[0]}

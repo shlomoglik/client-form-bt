@@ -1,22 +1,8 @@
 <script>
-  import firebase from "firebase/app";
-  import "firebase/auth";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDHpUO08qfO43u78AVHS8MKi8Wt6Tnd3jc",
-    authDomain: "files-directory.firebaseapp.com",
-    projectId: "files-directory",
-    storageBucket: "files-directory.appspot.com",
-    messagingSenderId: "399103769387",
-    appId: "1:399103769387:web:7343fe2ed8c3561d86a36e",
-  };
-  const app = firebase.initializeApp(firebaseConfig);
-  export const auth = firebase.auth(app);
-
+  import "./services/initFirebase";
   import { Route, Router, Link } from "svelte-navigator";
-
   import { prompt } from "./stores";
-  import { logout } from "./auth";
+  import { auth, logout } from "./services/auth";
   import { userDoc } from "./stores";
   import Auth from "./components/Auth.svelte";
   import Prompt from "./components/Prompt.svelte";
@@ -24,6 +10,8 @@
   import FinishAdd from "./pages/FinishAdd.svelte";
   import Login from "./pages/Login.svelte";
   import ClientForm from "./pages/ClientForm.svelte";
+  import Clients from "./pages/Clients.svelte";
+  import ClientFormDraft from "./pages/ClientFormDraft.svelte";
 </script>
 
 <Router>
@@ -41,6 +29,9 @@
             <Link to="/finish-add"
               ><span class="nav-link">סיום הוספת לקוח</span></Link
             >
+            <Link to="/clients"
+              ><span class="nav-link">לקוחות / טיוטות</span></Link
+            >
           {/if}
           <span class="nav-link" on:click={logout}>התנתק</span>
         {/if}
@@ -48,6 +39,8 @@
       </div>
       {#if loggedIn}
         <Route path="/" component={ClientForm} />
+        <Route path="/drafts/:docID" component={ClientFormDraft} />
+        <Route path="/clients" component={Clients} />
         <Route path="/edit-contract" component={EditContract} />
         <Route path="/finish-add" component={FinishAdd} />
       {:else}
@@ -106,5 +99,3 @@
     }
   }
 </style>
-
-

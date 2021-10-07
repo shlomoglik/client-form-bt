@@ -59,10 +59,10 @@ button:disabled {
 	cursor: not-allowed;
 }
 
-button:hover:not(:disabled) {
+button:hover:not(:disabled):not([data-disabled="true"]) {
 	transform: translateY(-3px);
 }
-button:not(:disabled):active {
+button:not(:disabled):not([data-disabled="true"]):active {
 	transform: translateY(0.5px);
 }
 
