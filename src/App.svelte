@@ -1,6 +1,6 @@
 <script>
   import "./services/initFirebase";
-  import { Route, Router, Link } from "svelte-navigator";
+  import { Route, Router, Link, useLocation } from "svelte-navigator";
   import { prompt } from "./stores";
   import { auth, logout } from "./services/auth";
   import { userDoc } from "./stores";
@@ -12,6 +12,7 @@
   import ClientForm from "./pages/ClientForm.svelte";
   import Clients from "./pages/Clients.svelte";
   import ClientFormDraft from "./pages/ClientFormDraft.svelte";
+  import NavLink from "./components/NavLink.svelte";
 </script>
 
 <Router>
@@ -23,17 +24,12 @@
       <div class="top">
         {#if loggedIn}
           {#if $userDoc?.email === "g_shlomo@business-time.co.il"}
-            <Link to="/edit-contract"
-              ><span class="nav-link">עריכת מבנה חוזה</span></Link
-            >
-            <Link to="/finish-add"
-              ><span class="nav-link">סיום הוספת לקוח</span></Link
-            >
-            <Link to="/clients"
-              ><span class="nav-link">לקוחות / טיוטות</span></Link
-            >
+            <NavLink to="/edit-contract" text="עריכת מבנה חוזה" />
+            <NavLink to="/finish-add" text="סיום הוספת לקוח" />
           {/if}
-          <span class="nav-link" on:click={logout}>התנתק</span>
+          <NavLink to="/clients" text="לקוחות / טיוטות" />
+          <NavLink to="/" text="לקוח חדש" />
+          <NavLink text="התנתק" action={logout} />
         {/if}
         <div class="userAvatar">{userDisplayValue}</div>
       </div>
@@ -60,13 +56,6 @@
     align-items: center;
   }
 
-  .nav-link {
-    cursor: pointer;
-    padding: 10px;
-  }
-  .nav-link:hover {
-    background-color: #80808059;
-  }
   .top {
     background-color: #333;
     color: #f0f0f0;

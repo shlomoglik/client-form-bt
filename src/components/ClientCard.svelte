@@ -1,7 +1,18 @@
 <script>
     import { Link } from "svelte-navigator";
+    import { db } from "../services/firestore";
+    import { userDoc } from "../stores";
+    import IconButton from "./IconButton.svelte";
 
     export let isDraft, client;
+
+    const handleDeleteDraft = async (ref) => {
+        try {
+            await db.doc(ref).delete();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 </script>
 
 <div class="client">
@@ -10,6 +21,14 @@
         <Link class="client" to={client.id}>
             {client.clientName}
         </Link>
+        {#if $userDoc?.email === "g_shlomo@business-time.co.il"}
+            <IconButton
+                action={(e) => handleDeleteDraft(client.id)}
+                icon="icon-trash"
+                color="var(--color-danger)"
+                withConfirm="למחוק?"
+            />
+        {/if}
     {/if}
     <div>{client.companyName}</div>
     <div>{client.phone}</div>

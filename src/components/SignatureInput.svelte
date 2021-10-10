@@ -14,7 +14,7 @@
 
     let valid = true;
     let error = "";
-    let attachments = [];
+    let attachments = $formDoc.docData[header] || [];
 
     let showPanel = true;
     let canvas;

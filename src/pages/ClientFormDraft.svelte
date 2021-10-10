@@ -24,7 +24,7 @@
 </script>
 
 {#await loadDraft()}
-    <div>טוען נתונים...</div>
+    <div >טוען נתונים...</div>
 {:then}
     <ClientForm />
 {/await}

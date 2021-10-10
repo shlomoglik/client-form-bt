@@ -72,7 +72,7 @@
       Object.entries(dataToSave).forEach(([header, value]) => {
         if (
           $formDoc.headers[header] &&
-          $formDoc.headers[header].type === "file"
+          ($formDoc.headers[header].type === "file" || $formDoc.headers[header].type === "signature")
         ) {
           value.forEach((el, ind) => {
             dataToSave[header] = Object.assign(el, { file: "" });

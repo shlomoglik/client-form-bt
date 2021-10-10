@@ -35,8 +35,10 @@
       required
     />
   </div>
-  <button on:click={loginHandler}>התחבר</button
-  >
+  <button on:click={loginHandler} >התחבר</button>
+  {#if error}
+    <div class="error">{error}</div>
+  {/if}
 </form>
 
 <style>
@@ -45,5 +47,9 @@
     gap: 1rem;
     align-items: center;
     justify-content: center;
+  }
+  .error{
+    color:var(--color-danger);
+
   }
 </style>
