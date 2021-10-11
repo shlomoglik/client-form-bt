@@ -15,6 +15,7 @@ body {
 :root {
 	--color-danger: #dc3545;
 	--color-primary:#591cd5;
+	--color-primary-light:#9f7fdd;
 }
 
 body {

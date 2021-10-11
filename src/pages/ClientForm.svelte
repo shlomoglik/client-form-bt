@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { fade } from "svelte/transition";
   import { formatDateDisplay, getDisplayValue } from "../utils/data";
-  import { formDoc, formDocID, formGroups, prompt } from "../stores";
+  import { formDoc, formDocID, formGroups } from "../stores";
   import FormGroup from "../components/FormGroup.svelte";
   import SignatureInput from "../components/SignatureInput.svelte";
   import ContractTitle from "../components/ContractTitle.svelte";
@@ -15,11 +15,14 @@
   import ContractProducts from "../components/ContractProducts.svelte";
   import Input from "../components/Input.svelte";
   import { useNavigate, useLocation } from "svelte-navigator";
+  import WithLoading from "../components/WithLoading.svelte";
 
   const navigate = useNavigate();
   const location = useLocation();
 
   $: valid = $formDoc.valid;
+  $: disabled = false;
+  $: loading = false;
   $: errors = $formDoc.errors;
   $: currentAddress = "";
   $: savingDraft = false;
@@ -72,7 +75,8 @@
       Object.entries(dataToSave).forEach(([header, value]) => {
         if (
           $formDoc.headers[header] &&
-          ($formDoc.headers[header].type === "file" || $formDoc.headers[header].type === "signature")
+          ($formDoc.headers[header].type === "file" ||
+            $formDoc.headers[header].type === "signature")
         ) {
           value.forEach((el, ind) => {
             dataToSave[header] = Object.assign(el, { file: "" });
@@ -92,6 +96,8 @@
 
   async function handleOnSubmit() {
     if (!valid) return;
+    disabled = true;
+    loading = "שולח נתונים...";
     try {
       const url =
         "https://hook.integromat.com/95nczekdzhsagsr4s8fypa1e9p9booly";
@@ -113,6 +119,9 @@
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      disabled = false;
+      loading = false;
     }
   }
 
@@ -330,161 +339,169 @@
   ];
 </script>
 
-<section transition:fade>
-  <h1>טופס הוספת לקוח חדש</h1>
-  <p>להוספת לקוח חדש למערכת מונדיי יש למלא אחר הוראות הטופס:</p>
-  <form
-    class="form"
-    on:submit|preventDefault={(e) => e.preventDefault()}
-    autocomplete="off"
-  >
-    <CollapsibleGroup title="כללי" shrinkable={false}>
-      <Input header="groupCompanyName" {formDoc} />
-    </CollapsibleGroup>
-    {#each $formGroups as formGroup}
-      <FormGroup
-        title={formGroup.title}
-        {formGroup}
+<WithLoading {loading}>
+  <section transition:fade>
+    <h1>טופס הוספת לקוח חדש</h1>
+    <p>להוספת לקוח חדש למערכת מונדיי יש למלא אחר הוראות הטופס:</p>
+    <form
+      class="form"
+      on:submit|preventDefault={(e) => e.preventDefault()}
+      autocomplete="off"
+    >
+      <CollapsibleGroup title="כללי" shrinkable={false}>
+        <Input header="groupCompanyName" {formDoc} />
+      </CollapsibleGroup>
+      {#each $formGroups as formGroup}
+        <FormGroup
+          title={formGroup.title}
+          {formGroup}
+          {formDoc}
+          shrinkable
+          isShrink={formGroup.isShrink}
+        />
+      {/each}
+    </form>
+    <CollapsibleGroup title="נספח חלוקת תשלומים" isShrink shrinkable>
+      <PaymentsTable
         {formDoc}
-        shrinkable
-        isShrink={formGroup.isShrink}
+        defaultDate={$formDoc.docData.feeStartDate}
+        defaultPrice={$formDoc.docData.priceIncludeVAT}
+        defatultPayments={$formDoc.docData.noOfPayments}
+        serviceStartDate={$formDoc.docData.contractStartDate}
+        servicePeriod={$formDoc.docData.contractPeriod}
       />
-    {/each}
-  </form>
-  <CollapsibleGroup title="נספח חלוקת תשלומים" isShrink shrinkable>
-    <PaymentsTable
-      {formDoc}
-      defaultDate={$formDoc.docData.feeStartDate}
-      defaultPrice={$formDoc.docData.priceIncludeVAT}
-      defatultPayments={$formDoc.docData.noOfPayments}
-      serviceStartDate={$formDoc.docData.contractStartDate}
-      servicePeriod={$formDoc.docData.contractPeriod}
-    />
-  </CollapsibleGroup>
-  {#if contractElem}
-    <pre hidden>{contractElem.innerHTML}</pre>
-  {/if}
-  <div class="contract" bind:this={contractElem}>
-    <!-- <div class="errors">
-                {#each errors as error}
-                  <div transition:fly>
-                    {error.text}
-                    <span on:click={(e) => removeError(error)}>x</span>
-                  </div>
-                {/each}
-              </div> -->
-    <ContractTitle
-      size="L"
-      text={`הסכם התקשרות ומתן שירותים ${
-        $formDoc.docData.package
-          ? "חבילת " +
-            getDisplayValue($formDoc.docData.package, "list", {
-              field: $formDoc.headers.package,
-              attributes: ["productTitle"],
-            })
-          : ""
-      }`}
-    />
-    <div>
-      <p contenteditable>
-        {`הסכם זה נערך בתאריך ${formatDateDisplay(new Date(), {
-          outputFormat: "dd=>mm",
-        })}, בכתובת ${currentAddress}`}
-      </p>
-    </div>
-    <ContractSides
-      company={{
-        name: $formDoc.docData.groupCompanyName,
-        id: $formDoc.docData.groupCompanyNumber,
-        type: "חברה בעמ",
-        signers: [
-          {
-            prefix: "",
-            name: $formDoc.docData.salesAgentName,
-            id: $formDoc.docData.salseAgentID,
-          },
-        ],
-      }}
-      client={{
-        name: $formDoc.docData.companyName,
-        id: $formDoc.docData.companyNumber,
-        type: $formDoc.docData.companyType,
-        signers: [
-          {
-            id: $formDoc.docData.clientNumber,
-            name: $formDoc.docData.clientName,
-          },
-        ],
-      }}
-    />
-    <ContractTitle
-      text={appendix[1].text}
-      size={appendix[1].size}
-      subText={appendix[1].subText}
-    />
-    <ContractProducts {formDoc} />
-    <ContractTitle
-      text={appendix[2].text}
-      size={appendix[2].size}
-      subText={appendix[2].subText}
-    />
-    <div class="priceQuote">
-      <span>חבילת שירות</span>
+    </CollapsibleGroup>
+    {#if contractElem}
+      <pre hidden>{contractElem.innerHTML}</pre>
+    {/if}
+    <div class="contract" bind:this={contractElem}>
+      <!-- <div class="errors">
+                  {#each errors as error}
+                    <div transition:fly>
+                      {error.text}
+                      <span on:click={(e) => removeError(error)}>x</span>
+                    </div>
+                  {/each}
+                </div> -->
+      <ContractTitle
+        size="L"
+        text={`הסכם התקשרות ומתן שירותים ${
+          $formDoc.docData.package
+            ? "חבילת " +
+              getDisplayValue($formDoc.docData.package, "list", {
+                field: $formDoc.headers.package,
+                attributes: ["productTitle"],
+              })
+            : ""
+        }`}
+      />
       <div>
-        {getDisplayValue($formDoc.docData.package, "list", {
-          field: $formDoc.headers.package,
-        }) || "_____"}
+        <p contenteditable>
+          {`הסכם זה נערך בתאריך ${formatDateDisplay(new Date(), {
+            outputFormat: "dd=>mm",
+          })}, בכתובת ${currentAddress}`}
+        </p>
       </div>
-      {#if $formDoc.docData.retainerOrDeal === "ריטיינר"}
-        <span>עלות חודשית</span>
-      {:else}
-        <span>עלות</span>
-      {/if}
-      <div>
-        {$formDoc.docData.price
-          ? getDisplayValue($formDoc.docData.price, "currency")
-          : "_____"}
-      </div>
-      {#if $formDoc.docData.retainerOrDeal === "ריטיינר"}
-        <span>משך זמן ליווי</span>
+      <ContractSides
+        company={{
+          name: $formDoc.docData.groupCompanyName,
+          id: $formDoc.docData.groupCompanyNumber,
+          type: "חברה בעמ",
+          signers: [
+            {
+              prefix: "",
+              name: $formDoc.docData.salesAgentName,
+              id: $formDoc.docData.salseAgentID,
+            },
+          ],
+        }}
+        client={{
+          name: $formDoc.docData.companyName,
+          id: $formDoc.docData.companyNumber,
+          type: $formDoc.docData.companyType,
+          signers: [
+            {
+              id: $formDoc.docData.clientNumber,
+              name: $formDoc.docData.clientName,
+            },
+          ],
+        }}
+      />
+      <ContractTitle
+        text={appendix[1].text}
+        size={appendix[1].size}
+        subText={appendix[1].subText}
+      />
+      <ContractProducts {formDoc} />
+      <ContractTitle
+        text={appendix[2].text}
+        size={appendix[2].size}
+        subText={appendix[2].subText}
+      />
+      <div class="priceQuote">
+        <span>חבילת שירות</span>
         <div>
-          {$formDoc.docData.contractPeriod
-            ? getDisplayValue($formDoc.docData.contractPeriod, "number", {}) +
-              " חודשים"
+          {getDisplayValue($formDoc.docData.package, "list", {
+            field: $formDoc.headers.package,
+          }) || "_____"}
+        </div>
+        {#if $formDoc.docData.retainerOrDeal === "ריטיינר"}
+          <span>עלות חודשית</span>
+        {:else}
+          <span>עלות</span>
+        {/if}
+        <div>
+          {$formDoc.docData.price
+            ? getDisplayValue($formDoc.docData.price, "currency")
             : "_____"}
         </div>
-        <span>תאריך תחילת ההתקשרות</span>
-        <div>
-          {$formDoc.docData.contractStartDate
-            ? getDisplayValue($formDoc.docData.contractStartDate, "date")
-            : "_____"}
-        </div>
-        <span>חלון יציאה</span>
-        <div contenteditable>כל 3 חודשים</div>
-      {/if}
-      <span>עלות נוספת</span>
-      <div contenteditable />
-      <span>הערות</span>
-      <div contenteditable>{$formDoc.docData.notes}</div>
+        {#if $formDoc.docData.retainerOrDeal === "ריטיינר"}
+          <span>משך זמן ליווי</span>
+          <div>
+            {$formDoc.docData.contractPeriod
+              ? getDisplayValue($formDoc.docData.contractPeriod, "number", {}) +
+                " חודשים"
+              : "_____"}
+          </div>
+          <span>תאריך תחילת ההתקשרות</span>
+          <div>
+            {$formDoc.docData.contractStartDate
+              ? getDisplayValue($formDoc.docData.contractStartDate, "date")
+              : "_____"}
+          </div>
+          <span>חלון יציאה</span>
+          <div contenteditable>כל 3 חודשים</div>
+        {/if}
+        <span>עלות נוספת</span>
+        <div contenteditable />
+        <span>הערות</span>
+        <div contenteditable>{$formDoc.docData.notes}</div>
+      </div>
+      <ContractTitle
+        text={appendix[3].text}
+        size={appendix[3].size}
+        subText={appendix[3].subText}
+      />
+      {#each wheres as { text, prefix }, ind}
+        <ContractWhereas {text} {prefix} />
+      {/each}
+      <Subs {subs} {formDoc} />
+      <SignatureInput header="clientSignature" {formDoc} />
     </div>
-    <ContractTitle
-      text={appendix[3].text}
-      size={appendix[3].size}
-      subText={appendix[3].subText}
-    />
-    {#each wheres as { text, prefix }, ind}
-      <ContractWhereas {text} {prefix} />
-    {/each}
-    <Subs {subs} {formDoc} />
-    <SignatureInput header="clientSignature" {formDoc} />
-  </div>
-  <button type="button" on:click={handleOnSubmit} data-disabled={!valid}>
-    בצע הזמנת עבודה
-  </button>
-  <button type="button" on:click={saveDraft} data-disabled={savingDraft}>
-    שמור טיוטה
-  </button>
-</section>
+    <button
+      type="button"
+      on:click={handleOnSubmit}
+      data-disabled={!valid || disabled}
+    >
+      בצע הזמנת עבודה
+    </button>
+    {#if $formDoc.docData.clientName}
+      <button type="button" on:click={saveDraft} data-disabled={savingDraft}>
+        שמור טיוטה
+      </button>
+    {/if}
+  </section>
+</WithLoading>
 
 <style>
   .priceQuote {
