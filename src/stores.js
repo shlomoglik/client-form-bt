@@ -253,8 +253,8 @@ const formHeaders = {
   salseAgentEmail: { label: "אימייל סוכן שטח", type: "text" },
   salseAgentID: { label: "תעודת זהות סוכן שטח", type: "text" },
 
-  paymentAttached: { label: "צ'קים", type: "file", required: true, options: { multiple: true } },
-  clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file", required: true, options: { multiple: true } },
+  paymentAttached: { label: "צ'קים", type: "file", /* required: true, */ options: { multiple: true } },
+  clientIdAttached: { label: "צילום ת.ז. של בעל העסק", type: "file", /* required: true, */ options: { multiple: true } },
 
   clientExpectations: {
     label: "תיאום ציפיות",

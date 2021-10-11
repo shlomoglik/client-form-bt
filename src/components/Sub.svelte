@@ -6,7 +6,7 @@
     let replaceHeaders = [];
 
     const DOC_DATA_PATTERN = /#_([a-zA-Z]+)_#/gm;
-    const INDEX_PATTERN = /&_([\d\.]+)_&/gm;
+    const INDEX_PATTERN = /&_([\d\.a-zA-Z]+)_&/gm;
     const replaceDocData = (_, match) =>
         $formDoc.docData[match] ? $formDoc.docData[match] : "____";
     const replaceIndex = (_, match) =>
