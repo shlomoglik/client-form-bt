@@ -18,7 +18,7 @@
     });
 </script>
 
-<div>
+<div class="page">
     <h3>טבלת טפסי לקוח וטיוטות</h3>
     <div class="filters">
         <div class="filter" on:click={() => (draftOnly = !draftOnly)}>
@@ -38,6 +38,12 @@
 </div>
 
 <style>
+    .page {
+        height: 100%;
+        display: grid;
+        align-content: center;
+        background-color: #f8f8f8;
+    }
     .filters {
         padding: 15px;
     }
