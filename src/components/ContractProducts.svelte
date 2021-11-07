@@ -26,7 +26,9 @@
         if (currentPackage) {
             $productItems.forEach((product, ind) => {
                 if (
-                    product?.attributes?.packages?.value?.includes(currentPackage)
+                    product?.attributes?.packages?.value?.includes(
+                        currentPackage
+                    )
                 ) {
                     $productItems[ind] = { ...product, active: true };
                 } else $productItems[ind] = { ...product, active: false };
@@ -131,9 +133,15 @@
                         -
                     {/if}
                 </span>
-                <span transition:fade class:active={product.active}>
-                    {product.text}
-                </span>
+                {#if product.active}
+                    <span transition:fade class:active={product.active}>
+                        {product.text}
+                    </span>
+                {:else}
+                    <del transition:fade class:active={product.active}>
+                        {product.text}
+                    </del>
+                {/if}
             </div>
         {/each}
     {/each}
@@ -159,6 +167,9 @@
     }
     .active {
         color: initial;
+    }
+    del{
+        text-decoration: none;
     }
     .check {
         display: flex;
